@@ -1,32 +1,37 @@
-# Descripcion
+# Notification Service - FinCore
 
-# Responsabilidades
+Microservicio de notificaciones para la plataforma FinCore.
 
-# Casos de uso
+## Descripción
 
-# Reglas de negocio
+## Responsabilidades
 
-# Modelo de dominio
+## Casos de uso
 
-# Eventos publicados
+## Reglas de negocio
 
-# Eventos consumidos
+## Modelo de dominio
 
-# APIs REST
+## Eventos publicados
 
-# APIs gRPC
+## Eventos consumidos
 
-# Base de datos
+## APIs REST
 
-# Dependencias
+## APIs gRPC
 
-# Configuracion
+## Base de datos
 
-# Ejecucion
+## Dependencias
 
-# Pruebas
+## Configuración
 
-# Observabilidad
+## Ejecución
 
-# Roadmap
+## Pruebas
 
+## Observabilidad
+
+## Roadmap
+
+Copyright Abel Gomez 2026

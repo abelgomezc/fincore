@@ -1,4 +1,10 @@
+# auth-service
+
+© 2026 Abel Gomez
+
 # Descripcion
+
+Servicio de autenticacion y autorizacion del ecosistema FinCore.
 
 # Responsabilidades
 
@@ -29,4 +35,3 @@
 # Observabilidad
 
 # Roadmap
-

@@ -1,32 +1,28 @@
-# Descripcion
+# Audit Service
 
-# Responsabilidades
+Microservicio de auditoría para FinCore.
 
-# Casos de uso
+## Requisitos
+- Java 17
+- Spring Boot 3.2.5
 
-# Reglas de negocio
+## Configuración
+- (pendiente)
 
-# Modelo de dominio
+## Construcción
+- (pendiente)
 
-# Eventos publicados
+## Ejecución
+- (pendiente)
 
-# Eventos consumidos
+## API
+- (pendiente)
 
-# APIs REST
+## Pruebas
+- (pendiente)
 
-# APIs gRPC
+## Despliegue
+- (pendiente)
 
-# Base de datos
-
-# Dependencias
-
-# Configuracion
-
-# Ejecucion
-
-# Pruebas
-
-# Observabilidad
-
-# Roadmap
-
+## Licencia
+Copyright Abel Gomez 2026

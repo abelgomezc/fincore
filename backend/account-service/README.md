@@ -1,32 +1,33 @@
-# Descripcion
+# Account Service
 
-# Responsabilidades
+Microservicio de gestion de cuentas y movimientos para FinCore.
 
-# Casos de uso
+## Descripcion
 
-# Reglas de negocio
+Servicio encargado de la administracion de cuentas corrientes y sus movimientos financieros.
 
-# Modelo de dominio
+## Requisitos
 
-# Eventos publicados
+- Java 17
+- Spring Boot 3.2.5
+- PostgreSQL
 
-# Eventos consumidos
+## Configuracion
 
-# APIs REST
+Ver archivo `.env.example` para las variables de entorno requeridas.
 
-# APIs gRPC
+## Build
 
-# Base de datos
+mvn clean package
 
-# Dependencias
+## Run
 
-# Configuracion
+java -jar target/account-service-0.0.1-SNAPSHOT.jar
 
-# Ejecucion
+## API Docs
 
-# Pruebas
+http://localhost:8081/swagger-ui.html
 
-# Observabilidad
+## Copyright
 
-# Roadmap
-
+Copyright Abel Gomez 2026

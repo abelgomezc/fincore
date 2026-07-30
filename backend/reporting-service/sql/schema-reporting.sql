@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS reportes (
+    id BIGSERIAL PRIMARY KEY,
+    tipo VARCHAR(100) NOT NULL,
+    parametros TEXT,
+    ruta_archivo TEXT,
+    generado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    version INTEGER NOT NULL DEFAULT 0
+);

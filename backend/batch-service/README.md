@@ -1,32 +1,13 @@
-# Descripcion
+# Batch Service
 
-# Responsabilidades
+Microservicio batch de FinCore.
 
-# Casos de uso
+## Secciones
 
-# Reglas de negocio
-
-# Modelo de dominio
-
-# Eventos publicados
-
-# Eventos consumidos
-
-# APIs REST
-
-# APIs gRPC
-
-# Base de datos
-
-# Dependencias
-
-# Configuracion
-
-# Ejecucion
-
-# Pruebas
-
-# Observabilidad
-
-# Roadmap
-
+- Descripción
+- Requisitos previos
+- Configuración
+- Ejecución
+- API
+- Pruebas
+- Despliegue

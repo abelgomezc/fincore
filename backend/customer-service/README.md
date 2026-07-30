@@ -1,32 +1,41 @@
-# Descripcion
+# Customer Service - FinCore
 
-# Responsabilidades
+Microservicio de gestión de clientes para la plataforma FinCore.
 
-# Casos de uso
+## Descripción
 
-# Reglas de negocio
+Este microservicio maneja la información de clientes (personas naturales y jurídicas) del ecosistema FinCore.
 
-# Modelo de dominio
+## Características
 
-# Eventos publicados
+- Registro de clientes
+- Consulta de clientes por ID y número de identificación
+- Integración con Eureka para descubrimiento de servicios
+- Publicación de eventos en Kafka cuando se crea un cliente
+- Documentación de API con OpenAPI/Swagger
 
-# Eventos consumidos
+## Requisitos
 
-# APIs REST
+- Java 17
+- Spring Boot 3.2.5
+- PostgreSQL
+- Eureka Server
+- Kafka
 
-# APIs gRPC
+## Configuración
 
-# Base de datos
+Variables de entorno disponibles en `.env.example`.
 
-# Dependencias
+## Ejecución
 
-# Configuracion
+```bash
+mvn spring-boot:run
+```
 
-# Ejecucion
+## API
 
-# Pruebas
+[Documentación Swagger](/swagger-ui.html)
 
-# Observabilidad
+## Licencia
 
-# Roadmap
-
+Copyright Abel Gomez 2026

@@ -1,3 +1,7 @@
+# api-gateway
+
+© 2026 Abel Gomez
+
 # Descripcion
 
 # Responsabilidades
@@ -29,4 +33,3 @@
 # Observabilidad
 
 # Roadmap
-
