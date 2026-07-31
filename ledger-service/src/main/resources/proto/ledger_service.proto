@@ -1,0 +1,107 @@
+// ===================================================================
+// FinCore Ledger Service — gRPC Protocol Definitions
+// © 2026 Abel Gomez. Todos los derechos reservados.
+// ===================================================================
+
+syntax = "proto3";
+
+package fincore.ledger;
+
+option java_package = "com.fincore.ledger.grpc";
+option java_outer_classname = "LedgerProto";
+option java_multiple_files = true;
+
+service LedgerServiceGrpc {
+    rpc CrearAsiento(CrearAsientoRequest) returns (CrearAsientoResponse);
+    rpc ObtenerSaldoCuenta(ObtenerSaldoCuentaRequest) returns (ObtenerSaldoCuentaResponse);
+    rpc VerificarEquilibrio(VerificarEquibradoRequest) returns (VerificarEquilibrioResponse);
+    rpc ObtenerExtracto(ObtenerExtractoRequest) returns (ObtenerExtractoResponse);
+    rpc ReversarAsiento(ReversarAsientoRequest) returns (ReversarAsientoResponse);
+}
+
+message LineaAsientoDTO {
+    string codigo_cuenta = 1;
+    int64 id_cuenta_bancaria = 2;
+    string tipo_movimiento = 3;
+    double monto = 4;
+    string descripcion = 5;
+}
+
+message CrearAsientoRequest {
+    string descripcion = 1;
+    int64 id_referencia = 2;
+    string tipo_referencia = 3;
+    string id_usuario = 4;
+    string ip_origen = 5;
+    string trace_id = 6;
+    repeated LineaAsientoDTO lineas = 7;
+}
+
+message CrearAsientoResponse {
+    bool exito = 1;
+    string numero_asiento = 2;
+    int64 id_asiento = 3;
+    string mensaje_error = 4;
+    string trace_id = 5;
+}
+
+message ObtenerSaldoCuentaRequest {
+    string codigo_cuenta = 1;
+    int64 id_cuenta_bancaria = 2;
+}
+
+message ObtenerSaldoCuentaResponse {
+    bool exito = 1;
+    string codigo_cuenta = 2;
+    double saldo_neto = 3;  // sum(debitos) - sum(creditos) para DEUDORA, inverso para ACREEDORA
+    double total_debitos = 4;
+    double total_creditos = 5;
+    string mensaje_error = 6;
+}
+
+message VerificarEquilibrioRequest {
+}
+
+message VerificarEquilibrioResponse {
+    bool exito = 1;
+    double balance_general = 2;  // debe ser 0
+    int64 total_asientos = 3;
+    string mensaje_error = 4;
+}
+
+message MovimientoExtractoDTO {
+    string numero_asiento = 1;
+    string fecha_asiento = 2;
+    string codigo_cuenta = 3;
+    string nombre_cuenta = 4;
+    string tipo_movimiento = 5;
+    double monto = 6;
+    string descripcion = 7;
+}
+
+message ObtenerExtractoRequest {
+    int64 id_cuenta_bancaria = 1;
+    string fecha_desde = 2;
+    string fecha_hasta = 3;
+}
+
+message ObtenerExtractoResponse {
+    bool exito = 1;
+    repeated MovimientoExtractoDTO movimientos = 2;
+    string mensaje_error = 3;
+}
+
+message ReversarAsientoRequest {
+    string numero_asiento = 1;
+    string descripcion_reversion = 2;
+    string id_usuario = 3;
+    string trace_id = 4;
+}
+
+message ReversarAsientoResponse {
+    bool exito = 1;
+    string numero_asiento_reversado = 2;
+    string nuevo_numero_asiento = 3;
+    string mensaje_error = 4;
+    string trace_id = 5;
+}

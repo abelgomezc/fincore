@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package fincore.transfer.proto.fraud;
+
+option java_multiple_files = true;
+option java_package = "com.fincore.transfer.proto.fraud";
+option java_outer_classname = "FraudServiceProto";
+
+/**
+ * Proto para cliente gRPC del fraud-service.
+ *
+ * © 2026 Abel Gomez. Todos los derechos reservados.
+ */
+service FraudService {
+    rpc evaluarTransferencia(EvaluacionFraudeRequest) returns (EvaluacionFraudeResponse);
+}
+
+message EvaluacionFraudeRequest {
+    int64 id_transferencia = 1;
+    int64 id_cuenta_origen = 2;
+    string monto = 3;
+    string ip_origen = 4;
+    string dispositivo = 5;
+    string trace_id = 6;
+}
+
+message EvaluacionFraudeResponse {
+    int32 score = 1;
+    string decision = 2;
+    string mensaje = 3;
+}

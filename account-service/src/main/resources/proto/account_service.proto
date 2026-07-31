@@ -1,0 +1,169 @@
+// ===================================================================
+// FinCore Account Service — gRPC Protocol Definitions
+// © 2026 Abel Gomez. Todos los derechos reservados.
+// ===================================================================
+
+syntax = "proto3";
+
+package fincore.account;
+
+option java_package = "com.fincore.account.grpc";
+option java_outer_classname = "AccountProto";
+option java_multiple_files = true;
+
+// ===================================================================
+// Servicio gRPC para Account Service
+// ===================================================================
+service AccountServiceGrpc {
+    rpc ReservarFondos(ReservarFondosRequest) returns (ReservarFondosResponse);
+    rpc LiberarReserva(LiberarReservaRequest) returns (LiberarReservaResponse);
+    rpc ObtenerSaldo(ObtenerSaldoRequest) returns (ObtenerSaldoResponse);
+    rpc ValidarCuenta(ValidarCuentaRequest) returns (ValidarCuentaResponse);
+    rpc ObtenerCuenta(ObtenerCuentaRequest) returns (ObtenerCuentaResponse);
+    rpc AplicarDebito(AplicarDebitoRequest) returns (AplicarDebitoResponse);
+    rpc AplicarCredito(AplicarCreditoRequest) returns (AplicarCreditoResponse);
+}
+
+// ===================================================================
+// Mensajes — Reservar Fondos (usado por transfer-service)
+// ===================================================================
+message ReservarFondosRequest {
+    int64 id_cuenta = 1;
+    string numero_cuenta = 2;
+    double monto = 3;
+    string moneda = 4;
+    string trace_id = 5;
+}
+
+message ReservarFondosResponse {
+    bool exito = 1;
+    int64 id_cuenta = 2;
+    double saldo_contable = 3;
+    double saldo_disponible = 4;
+    double saldo_retenido = 5;
+    double saldo_proyectado = 6;
+    string mensaje_error = 7;
+    string trace_id = 8;
+}
+
+// ===================================================================
+// Mensajes — Liberar Reserva (compensating transaction)
+// ===================================================================
+message LiberarReservaRequest {
+    int64 id_cuenta = 1;
+    double monto = 2;
+    string trace_id = 3;
+}
+
+message LiberarReservaResponse {
+    bool exito = 1;
+    int64 id_cuenta = 2;
+    double saldo_contable = 3;
+    double saldo_disponible = 4;
+    double saldo_retenido = 5;
+    double saldo_proyectado = 6;
+    string mensaje_error = 7;
+    string trace_id = 8;
+}
+
+// ===================================================================
+// Mensajes — Obtener Saldo
+// ===================================================================
+message ObtenerSaldoRequest {
+    int64 id_cuenta = 1;
+    string numero_cuenta = 2;
+}
+
+message ObtenerSaldoResponse {
+    bool exito = 1;
+    int64 id_cuenta = 2;
+    string numero_cuenta = 3;
+    double saldo_contable = 4;
+    double saldo_disponible = 5;
+    double saldo_retenido = 6;
+    double saldo_proyectado = 7;
+    string estado = 8;
+    string moneda = 9;
+}
+
+// ===================================================================
+// Mensajes — Validar Cuenta
+// ===================================================================
+message ValidarCuentaRequest {
+    int64 id_cuenta = 1;
+    string numero_cuenta = 2;
+}
+
+message ValidarCuentaResponse {
+    bool exito = 1;
+    int64 id_cuenta = 2;
+    string numero_cuenta = 3;
+    bool existe = 4;
+    bool esta_activa = 5;
+    string estado = 6;
+    string mensaje_error = 7;
+}
+
+// ===================================================================
+// Mensajes — Obtener Cuenta
+// ===================================================================
+message ObtenerCuentaRequest {
+    int64 id_cuenta = 1;
+    string numero_cuenta = 2;
+}
+
+message ObtenerCuentaResponse {
+    bool exito = 1;
+    int64 id_cuenta = 2;
+    string numero_cuenta = 3;
+    int64 id_cliente = 4;
+    string estado = 5;
+    string moneda = 6;
+    double saldo_contable = 7;
+    double saldo_disponible = 8;
+    double saldo_retenido = 9;
+    double saldo_proyectado = 10;
+    string mensaje_error = 11;
+}
+
+// ===================================================================
+// Mensajes — Aplicar Débito (usado por ledger/transfer)
+// ===================================================================
+message AplicarDebitoRequest {
+    int64 id_cuenta = 1;
+    double monto = 2;
+    string tipo_movimiento = 3;  // DEBITO, RETENCION, COMISION
+    string trace_id = 4;
+}
+
+message AplicarDebitoResponse {
+    bool exito = 1;
+    int64 id_cuenta = 2;
+    double saldo_contable = 3;
+    double saldo_disponible = 4;
+    double saldo_retenido = 5;
+    double saldo_proyectado = 6;
+    string mensaje_error = 7;
+    string trace_id = 8;
+}
+
+// ===================================================================
+// Mensajes — Aplicar Crédito (usado por ledger/transfer)
+// ===================================================================
+message AplicarCreditoRequest {
+    int64 id_cuenta = 1;
+    double monto = 2;
+    string tipo_movimiento = 3;  // CREDITO, LIBERACION
+    string trace_id = 4;
+}
+
+message AplicarCreditoResponse {
+    bool exito = 1;
+    int64 id_cuenta = 2;
+    double saldo_contable = 3;
+    double saldo_disponible = 4;
+    double saldo_retenido = 5;
+    double saldo_proyectado = 6;
+    string mensaje_error = 7;
+    string trace_id = 8;
+}

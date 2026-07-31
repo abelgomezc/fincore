@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package fincore.transfer.proto.account;
+
+option java_multiple_files = true;
+option java_package = "com.fincore.transfer.proto.account";
+option java_outer_classname = "AccountServiceProto";
+
+/**
+ * Proto para cliente gRPC del account-service.
+ *
+ * © 2026 Abel Gomez. Todos los derechos reservados.
+ */
+service AccountService {
+    rpc validarCuenta(CuentaRequest) returns (RespuestaValidacion);
+    rpc validarSaldoSuficiente(SaldoRequest) returns (RespuestaValidacion);
+    rpc reservarFondos(TransferenciaRequest) returns (RespuestaValidacion);
+    rpc liberarReserva(TransferenciaRequest) returns (RespuestaValidacion);
+    rpc aplicarDebito(TransferenciaRequest) returns (RespuestaValidacion);
+    rpc revertirDebito(TransferenciaRequest) returns (RespuestaValidacion);
+    rpc aplicarCredito(TransferenciaRequest) returns (RespuestaValidacion);
+    rpc revertirCredito(TransferenciaRequest) returns (RespuestaValidacion);
+    rpc aplicarComision(TransferenciaRequest) returns (RespuestaValidacion);
+}
+
+message CuentaRequest {
+    int64 id_cuenta = 1;
+}
+
+message SaldoRequest {
+    int64 id_cuenta = 1;
+    string monto = 2;
+}
+
+message TransferenciaRequest {
+    int64 id_cuenta = 1;
+    string monto = 2;
+    string trace_id = 3;
+}
+
+message RespuestaValidacion {
+    bool exito = 1;
+    string mensaje = 2;
+}

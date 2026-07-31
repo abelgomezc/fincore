@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package fincore.transfer.proto.ledger;
+
+option java_multiple_files = true;
+option java_package = "com.fincore.transfer.proto.ledger";
+option java_outer_classname = "LedgerServiceProto";
+
+/**
+ * Proto para cliente gRPC del ledger-service.
+ *
+ * © 2026 Abel Gomez. Todos los derechos reservados.
+ */
+service LedgerService {
+    rpc crearAsiento(CrearAsientoRequest) returns (CrearAsientoResponse);
+    rpc obtenerAsiento(ObtenerAsientoRequest) returns (ObtenerAsientoResponse);
+    rpc verificarEquilibrio(VerificarEquibradoRequest) returns (VerificarEquibradoResponse);
+}
+
+message CrearAsientoRequest {
+    int64 id_cuenta_origen = 1;
+    string monto_origen = 2;
+    string moneda_origen = 3;
+    int64 id_cuenta_destino = 4;
+    string monto_destino = 5;
+    string moneda_destino = 6;
+    string concepto = 7;
+    string id_usuario = 8;
+    string ip_origen = 9;
+    string trace_id = 10;
+}
+
+message CrearAsientoResponse {
+    bool exito = 1;
+    string mensaje = 2;
+    int64 id_asiento = 3;
+}
+
+message ObtenerAsientoRequest {
+    int64 id_asiento = 1;
+}
+
+message ObtenerAsientoResponse {
+    bool exito = 1;
+    string mensaje = 2;
+    string detalle = 3;
+}
+
+message VerificarEquibradoRequest {
+    int64 id_asiento = 1;
+}
+
+message VerificarEquibradoResponse {
+    bool esta_equilibrado = 1;
+    string mensaje = 2;
+}
+
+message CuentaContableRequest {
+    int64 id_cuenta = 1;
+}
+
+message CuentaContableResponse {
+    bool existe = 1;
+    string numero_cuenta = 2;
+    string nombre = 3;
+}

@@ -1,0 +1,84 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+!.gitattributes
+tmp/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+.mvn/wrapper/
+
+# IDE
+.idea/
+.vscode/
+*.iws
+*.ipr
+*.iml
+.classpath
+.project
+.settings/
+*.launch
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+log/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.sql.bak
+
+# Node
+node_modules/
+dist/
+build/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+
+# Docker
+docker-compose.override.yml
+
+# IDE specific
+.vs/
+.history/
+*.swp
+*.swo
+*~
+
+# Coverage
+.jacoco/
+.coverage
+htmlcov/
+.coverage.*
+
+# Temp
+*.tmp
+*.temp
