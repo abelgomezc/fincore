@@ -31,15 +31,15 @@ public interface CuentaRepository extends JpaRepository<Cuenta, Long>, JpaSpecif
 
     boolean existsByNumeroCuenta(String numeroCuenta);
 
-    @Lock(org.springframework.data.jpa.repository.LockModeType.PESSIMISTIC_WRITE)
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Cuenta c WHERE c.id = :id")
     Optional<Cuenta> findByIdWithLock(@Param("id") Long id);
 
-    @Lock(org.springframework.data.jpa.repository.LockModeType.PESSIMISTIC_WRITE)
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Cuenta c WHERE c.numeroCuenta = :numeroCuenta")
     Optional<Cuenta> findByNumeroCuentaWithLock(@Param("numeroCuenta") String numeroCuenta);
 
-    @Lock(org.springframework.data.jpa.repository.LockModeType.PESSIMISTIC_WRITE)
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Cuenta c WHERE c.idCliente = :idCliente")
     List<Cuenta> findByIdClienteWithLock(@Param("idCliente") Long idCliente);
 }

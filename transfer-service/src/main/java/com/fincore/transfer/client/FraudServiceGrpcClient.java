@@ -3,14 +3,16 @@ package com.fincore.transfer.client;
 import com.fincore.transfer.proto.fraud.FraudServiceGrpc;
 import com.fincore.transfer.proto.fraud.EvaluacionFraudeRequest;
 import com.fincore.transfer.proto.fraud.EvaluacionFraudeResponse;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PreDestroy;
 import java.math.BigDecimal;
 
 /**
- * gRPC Client para fraud-service.
+ * Cliente gRPC para fraud-service.
  *
  * © 2026 Abel Gomez. Todos los derechos reservados.
  */
@@ -18,12 +20,24 @@ import java.math.BigDecimal;
 @Slf4j
 public class FraudServiceGrpcClient {
 
-    @GrpcClient("fraud-service")
-    private FraudServiceGrpc.FraudServiceBlockingStub fraudStub;
+    private final FraudServiceGrpc.FraudServiceBlockingStub stub;
+    private final ManagedChannel channel;
 
-    /**
-     * Resultado de la evaluación de fraude.
-     */
+    public FraudServiceGrpcClient() {
+        this.channel = ManagedChannelBuilder
+                .forAddress("localhost", 9086)
+                .usePlaintext()
+                .build();
+        this.stub = FraudServiceGrpc.newBlockingStub(channel);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        if (channel != null && !channel.isShutdown()) {
+            channel.shutdown();
+        }
+    }
+
     public static class FraudEvaluationResult {
         private final int score;
         private final String decision;
@@ -48,9 +62,6 @@ public class FraudServiceGrpcClient {
         }
     }
 
-    /**
-     * Evalúa una transferencia en el motor antifraude.
-     */
     public FraudEvaluationResult evaluarTransferencia(
             Long idTransferencia,
             Long idCuentaOrigen,
@@ -69,7 +80,7 @@ public class FraudServiceGrpcClient {
                     .setTraceId(traceId)
                     .build();
 
-            EvaluacionFraudeResponse response = fraudStub.evaluarTransferencia(request);
+            EvaluacionFraudeResponse response = stub.evaluarTransferencia(request);
 
             return new FraudEvaluationResult(
                     response.getScore(),
@@ -79,7 +90,6 @@ public class FraudServiceGrpcClient {
 
         } catch (Exception e) {
             log.error("Error evaluando fraude para transferencia {}: {}", idTransferencia, e.getMessage(), e);
-            // En caso de error, permitir la transferencia con score bajo
             return new FraudEvaluationResult(0, "APROBADO", "Error en motor de fraude — aprobado por fallback");
         }
     }

@@ -19,7 +19,7 @@ public interface LimiteTransaccionRepository extends JpaRepository<LimiteTransac
 
     Optional<LimiteTransaccion> findByIdCuenta(Long idCuenta);
 
-    @Lock(org.springframework.data.jpa.repository.LockModeType.PESSIMISTIC_WRITE)
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT lt FROM LimiteTransaccion lt WHERE lt.idCuenta = :idCuenta")
     Optional<LimiteTransaccion> findByIdCuentaWithLock(@Param("idCuenta") Long idCuenta);
 }

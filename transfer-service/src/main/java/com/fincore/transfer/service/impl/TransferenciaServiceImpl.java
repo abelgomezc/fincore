@@ -87,7 +87,7 @@ public class TransferenciaServiceImpl implements TransferenciaService {
         transferencia.setFechaIniciada(LocalDateTime.now());
 
         // Guardar (estado PENDIENTE)
-        transferencia = transferenciaRepository.save(transferencia);
+        transferenciaRepository.save(transferencia);
 
         // Persistir estado inicial
         TransferenciaEstado estado = new TransferenciaEstado();

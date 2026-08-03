@@ -2,7 +2,6 @@ package com.fincore.customer.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.KafkaSendCallback;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -42,16 +41,12 @@ public class ClienteEventProducer {
                 .build();
 
         kafkaTemplate.send("cliente.creado", idCliente.toString(), event)
-                .addCallback(new KafkaSendCallback<>() {
-                    @Override
-                    public void onSuccess(org.springframework.kafka.support.SendResult<String, Object> result) {
-                        log.info("Evento cliente.creado publicado: ID={}", idCliente);
-                    }
-
-                    @Override
-                    public void onFailure(org.springframework.kafka.support.KafkaException exception) {
-                        log.error("Error publicando evento cliente.creado: ID={}", idCliente, exception);
-                    }
+                .thenAccept(result -> {
+                    log.info("Evento cliente.creado publicado: ID={}", idCliente);
+                })
+                .exceptionally(exception -> {
+                    log.error("Error publicando evento cliente.creado: ID={}", idCliente, exception);
+                    return null;
                 });
     }
 
@@ -118,7 +113,7 @@ public class ClienteEventProducer {
         log.info("Evento cliente.kyc.rechazado publicado: ID={}", idCliente);
     }
 
-    public void publicarClienteKycEnReview(Long idCliente) {
+    public void publicarClienteKycEnRevision(Long idCliente) {
         ClienteKycEnReviewEvent event = ClienteKycEnReviewEvent.builder()
                 .idCliente(idCliente)
                 .timestamp(Instant.now().toEpochMilli())

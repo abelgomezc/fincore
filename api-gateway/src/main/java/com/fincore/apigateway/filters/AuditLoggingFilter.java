@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -18,23 +16,17 @@ import java.util.UUID;
 /**
  * Filtro de auditoría — registra TODA petición que pasa por el gateway.
  *
- * Captura: traceId, servicio, endpoint, método HTTP, usuario, IP,
- * dispositivo, tiempo de respuesta y resultado.
- * Publica eventos a Kafka topic "audit.events".
- *
  * © 2026 Abel Gomez. Todos los derechos reservados.
  */
 @Component
 @Slf4j
 public class AuditLoggingFilter implements GatewayFilter, Ordered {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String AUDIT_TOPIC = "audit.events";
 
-    public AuditLoggingFilter(KafkaTemplate<String, Object> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
+    public AuditLoggingFilter() {
     }
 
     @Override
@@ -46,6 +38,7 @@ public class AuditLoggingFilter implements GatewayFilter, Ordered {
         if (traceId == null || traceId.isEmpty()) {
             traceId = UUID.randomUUID().toString().replace("-", "");
         }
+        String traceIdFinal = traceId;
 
         String clientIp = request.getHeaders().getFirst("X-Forwarded-For");
         if (clientIp == null) {
@@ -58,7 +51,8 @@ public class AuditLoggingFilter implements GatewayFilter, Ordered {
         String userRol = request.getHeaders().getFirst("X-User-Rol");
         String deviceId = request.getHeaders().getFirst("X-Device-Id");
         String path = request.getURI().getPath();
-        String method = request.getMethodValue();
+        String method = request.getMethod().name();
+        String clientIpFinal = clientIp;
 
         String service = extractServiceFromPath(path);
 
@@ -71,30 +65,8 @@ public class AuditLoggingFilter implements GatewayFilter, Ordered {
 
                     String result = isSuccess(statusCode) ? "EXITOSO" : "FALLIDO";
 
-                    AuditEvent auditEvent = AuditEvent.builder()
-                            .traceId(traceId)
-                            .servicio(service)
-                            .endpoint(path)
-                            .metodoHttp(method)
-                            .idUsuario(userId != null ? userId : "anonymous")
-                            .rolUsuario(userRol != null ? userRol : "anonymous")
-                            .ipOrigen(clientIp)
-                            .dispositivo(deviceId != null ? deviceId : "unknown")
-                            .responseCodigo(statusCode)
-                            .tiempoRespuestaMs((int) durationMs)
-                            .resultado(result)
-                            .detalle("Petición procesada por API Gateway")
-                            .fechaCreacion(Instant.now().toEpochMilli())
-                            .build();
-
-                    try {
-                        String json = objectMapper.writeValueAsString(auditEvent);
-                        kafkaTemplate.send(AUDIT_TOPIC, traceId, json);
-                        log.debug("Auditoría registrada: {} {} -> {} ({}ms)",
-                                method, path, statusCode, durationMs);
-                    } catch (Exception e) {
-                        log.error("Error registrando auditoría: {}", e.getMessage(), e);
-                    }
+                    log.debug("Auditoría: {} {} -> {} ({}ms) traceId={} IP={}",
+                            method, path, statusCode, durationMs, traceIdFinal, clientIpFinal);
                 }));
     }
 
@@ -119,26 +91,5 @@ public class AuditLoggingFilter implements GatewayFilter, Ordered {
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE + 300;
-    }
-
-    @lombok.Getter
-    @lombok.Setter
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
-    private static class AuditEvent {
-        private String traceId;
-        private String servicio;
-        private String endpoint;
-        private String metodoHttp;
-        private String idUsuario;
-        private String rolUsuario;
-        private String ipOrigen;
-        private String dispositivo;
-        private Integer responseCodigo;
-        private Integer tiempoRespuestaMs;
-        private String resultado;
-        private String detalle;
-        private Long fechaCreacion;
     }
 }

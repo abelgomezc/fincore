@@ -35,7 +35,7 @@ public class AccountEventConsumer {
 
     @KafkaListener(topics = "transferencia.completada", groupId = "account-service-group")
     public void handleTransferenciaCompletada(@Payload Map<String, Object> event,
-                                               @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key) {
+                                                @Header(KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("Evento transferencia.completada recibido: key={}", key);
         // El read model de saldos ya fue actualizado por el gRPC del transfer-service.
         // Aquí se podría invalidar el caché de saldos.
@@ -44,14 +44,14 @@ public class AccountEventConsumer {
 
     @KafkaListener(topics = "transferencia.revertida", groupId = "account-service-group")
     public void handleTransferenciaRevertida(@Payload Map<String, Object> event,
-                                              @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key) {
+                                               @Header(KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("Evento transferencia.revertida recibido: key={}", key);
         log.debug("Invalidando caché de saldos para evento de transferencia revertida");
     }
 
     @KafkaListener(topics = "batch.intereses.calculados", groupId = "account-service-group")
     public void handleInteresesCalculados(@Payload Map<String, Object> event,
-                                          @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key) {
+                                           @Header(KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("Evento batch.intereses.calculados recibido: key={}", key);
 
         Long idCuenta = Long.valueOf(event.get("idCuenta").toString());

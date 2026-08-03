@@ -81,7 +81,7 @@ public class Usuario extends BaseEntity {
                 this.estado = EstadoUsuario.ACTIVO;
                 this.intentosFallidos = 0;
                 this.fechaBloqueo = null;
-                this.fechaActualizacion = ahora;
+                setFechaActualizacion(ahora);
                 return false;
             }
         }

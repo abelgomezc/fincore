@@ -5,13 +5,11 @@ import com.fincore.ledger.dto.LineaAsientoDTO;
 import com.fincore.ledger.dto.response.AsientoResponse;
 import com.fincore.ledger.grpc.LedgerProto.CrearAsientoRequest;
 import com.fincore.ledger.grpc.LedgerProto.CrearAsientoResponse;
-import com.fincore.ledger.grpc.LedgerProto.LiberarReservaRequest;
-import com.fincore.ledger.grpc.LedgerProto.LiberarReservaResponse;
 import com.fincore.ledger.grpc.LedgerProto.ObtenerCuentaRequest;
 import com.fincore.ledger.grpc.LedgerProto.ObtenerCuentaResponse;
 import com.fincore.ledger.grpc.LedgerProto.ObtenerSaldoCuentaRequest;
 import com.fincore.ledger.grpc.LedgerProto.ObtenerSaldoCuentaResponse;
-import com.fincore.ledger.grpc.LedgerProto.VerificarEquilibrioRequest;
+import com.fincore.ledger.grpc.LedgerProto.VerificarEquibradoRequest;
 import com.fincore.ledger.grpc.LedgerProto.VerificarEquilibrioResponse;
 import com.fincore.ledger.grpc.LedgerProto.ReversarAsientoRequest;
 import com.fincore.ledger.grpc.LedgerProto.ReversarAsientoResponse;
@@ -21,7 +19,7 @@ import com.fincore.ledger.service.LedgerService;
 import com.fincore.ledger.service.AsientoFactory;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.springboot.autoconfigure.grpc.server.service.GrpcService;
+import org.lognet.springboot.grpc.GRpcService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -40,7 +38,7 @@ import java.util.List;
  *
  * © 2026 Abel Gomez. Todos los derechos reservados.
  */
-@GrpcService
+@GRpcService
 @Slf4j
 public class LedgerGrpcService extends LedgerServiceGrpcGrpc.LedgerServiceGrpcImplBase {
 

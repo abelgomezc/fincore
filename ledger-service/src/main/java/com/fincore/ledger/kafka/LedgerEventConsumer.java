@@ -44,7 +44,7 @@ public class LedgerEventConsumer {
 
     @KafkaListener(topics = "transferencia.fondos.reservados", groupId = "ledger-service-group")
     public void handleFondosReservados(@Payload Map<String, Object> event,
-                                       @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key) {
+                                       @Header(KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("Evento transferencia.fondos.reservados: key={}", key);
         try {
             Long idCuentaOrigen = Long.valueOf(event.get("idCuentaOrigen").toString());
@@ -70,7 +70,7 @@ public class LedgerEventConsumer {
 
     @KafkaListener(topics = "transferencia.debito.ejecutado", groupId = "ledger-service-group")
     public void handleDebitoEjecutado(@Payload Map<String, Object> event,
-                                      @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key) {
+                                      @Header(KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("Evento transferencia.debito.ejecutado: key={}", key);
         try {
             Long idCuentaOrigen = Long.valueOf(event.get("idCuentaOrigen").toString());
@@ -97,7 +97,7 @@ public class LedgerEventConsumer {
 
     @KafkaListener(topics = "transferencia.credito.ejecutado", groupId = "ledger-service-group")
     public void handleCreditoEjecutado(@Payload Map<String, Object> event,
-                                       @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key) {
+                                       @Header(KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("Evento transferencia.credito.ejecutado: key={}", key);
         try {
             Long idCuentaDestino = Long.valueOf(event.get("idCuentaDestino").toString());
@@ -123,7 +123,7 @@ public class LedgerEventConsumer {
 
     @KafkaListener(topics = "transferencia.revertida", groupId = "ledger-service-group")
     public void handleTransferenciaRevertida(@Payload Map<String, Object> event,
-                                             @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key) {
+                                             @Header(KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("Evento transferencia.revertida: key={}", key);
         try {
             Long idCuentaOrigen = Long.valueOf(event.get("idCuentaOrigen").toString());
@@ -150,7 +150,7 @@ public class LedgerEventConsumer {
 
     @KafkaListener(topics = "batch.intereses.calculados", groupId = "ledger-service-group")
     public void handleInteresesCalculados(@Payload Map<String, Object> event,
-                                          @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String key) {
+                                          @Header(KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("Evento batch.intereses.calculados: key={}", key);
         try {
             Long idCuenta = Long.valueOf(event.get("idCuenta").toString());

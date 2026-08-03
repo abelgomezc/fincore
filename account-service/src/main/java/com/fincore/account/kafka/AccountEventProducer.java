@@ -2,7 +2,6 @@ package com.fincore.account.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.KafkaSendCallback;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -37,16 +36,12 @@ public class AccountEventProducer {
                 .build();
 
         kafkaTemplate.send("cuenta.creada", idCuenta.toString(), event)
-                .addCallback(new KafkaSendCallback<>() {
-                    @Override
-                    public void onSuccess(org.springframework.kafka.support.SendResult<String, Object> result) {
-                        log.info("Evento cuenta.creada publicado: ID={}", idCuenta);
-                    }
-
-                    @Override
-                    public void onFailure(org.springframework.kafka.support.KafkaException exception) {
-                        log.error("Error publicando evento cuenta.creada: ID={}", idCuenta, exception);
-                    }
+                .thenAccept(result -> {
+                    log.info("Evento cuenta.creada publicado: ID={}", idCuenta);
+                })
+                .exceptionally(exception -> {
+                    log.error("Error publicando evento cuenta.creada: ID={}", idCuenta, exception);
+                    return null;
                 });
     }
 

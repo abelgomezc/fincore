@@ -61,6 +61,10 @@ public class CrearClienteRequest {
     @NotEmpty(message = "Debe proporcionar al menos un documento")
     private List<DocumentoRequest> documentos;
 
+    private List<DireccionRequest> direcciones;
+
+    private List<ContactoRequest> contactosEmergencia;
+
     @Data
     @Builder
     @NoArgsConstructor

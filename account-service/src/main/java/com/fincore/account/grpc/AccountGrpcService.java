@@ -19,7 +19,7 @@ import com.fincore.account.repository.CuentaRepository;
 import com.fincore.account.service.SaldoService;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.springboot.autoconfigure.grpc.server.service.GrpcService;
+import org.lognet.springboot.grpc.GRpcService;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -38,7 +38,7 @@ import java.util.Optional;
  *
  * © 2026 Abel Gomez. Todos los derechos reservados.
  */
-@GrpcService
+@GRpcService
 @Slf4j
 public class AccountGrpcService extends AccountServiceGrpcGrpc.AccountServiceGrpcImplBase {
 

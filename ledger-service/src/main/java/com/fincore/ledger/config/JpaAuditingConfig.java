@@ -18,17 +18,6 @@ public class JpaAuditingConfig {
 
     @Bean
     public AuditorAware<String> auditorProvider() {
-        return () -> {
-            try {
-                org.springframework.security.core.context.SecurityContext context =
-                        org.springframework.security.core.context.SecurityContextHolder.getContext();
-                if (context != null && context.getAuthentication() != null) {
-                    return Optional.of(context.getAuthentication().getName());
-                }
-            } catch (Exception e) {
-                // No hay contexto de seguridad
-            }
-            return Optional.of("system");
-        };
+        return () -> Optional.of("system");
     }
 }

@@ -5,12 +5,16 @@ import com.fincore.transfer.proto.account.CuentaRequest;
 import com.fincore.transfer.proto.account.SaldoRequest;
 import com.fincore.transfer.proto.account.TransferenciaRequest;
 import com.fincore.transfer.proto.account.RespuestaValidacion;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PreDestroy;
+import java.math.BigDecimal;
+
 /**
- * gRPC Client para account-service.
+ * Cliente gRPC para account-service.
  *
  * © 2026 Abel Gomez. Todos los derechos reservados.
  */
@@ -18,18 +22,30 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class AccountServiceGrpcClient {
 
-    @GrpcClient("account-service")
-    private AccountServiceGrpc.AccountServiceBlockingStub accountStub;
+    private final AccountServiceGrpc.AccountServiceBlockingStub stub;
+    private final ManagedChannel channel;
 
-    /**
-     * Valida que la cuenta exista y esté activa.
-     */
+    public AccountServiceGrpcClient() {
+        this.channel = ManagedChannelBuilder
+                .forAddress("localhost", 9083)
+                .usePlaintext()
+                .build();
+        this.stub = AccountServiceGrpc.newBlockingStub(channel);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        if (channel != null && !channel.isShutdown()) {
+            channel.shutdown();
+        }
+    }
+
     public boolean validarCuenta(Long idCuenta) {
         try {
             CuentaRequest request = CuentaRequest.newBuilder()
                     .setIdCuenta(idCuenta)
                     .build();
-            RespuestaValidacion response = accountStub.validarCuenta(request);
+            RespuestaValidacion response = stub.validarCuenta(request);
             return response.getExito();
         } catch (Exception e) {
             log.error("Error validando cuenta {}: {}", idCuenta, e.getMessage(), e);
@@ -37,16 +53,13 @@ public class AccountServiceGrpcClient {
         }
     }
 
-    /**
-     * Verifica si la cuenta tiene saldo suficiente para el monto.
-     */
-    public boolean validarSaldoSuficiente(Long idCuenta, java.math.BigDecimal monto) {
+    public boolean validarSaldoSuficiente(Long idCuenta, BigDecimal monto) {
         try {
             SaldoRequest request = SaldoRequest.newBuilder()
                     .setIdCuenta(idCuenta)
                     .setMonto(monto.toString())
                     .build();
-            RespuestaValidacion response = accountStub.validarSaldoSuficiente(request);
+            RespuestaValidacion response = stub.validarSaldoSuficiente(request);
             return response.getExito();
         } catch (Exception e) {
             log.error("Error validando saldo para cuenta {}: {}", idCuenta, e.getMessage(), e);
@@ -54,17 +67,14 @@ public class AccountServiceGrpcClient {
         }
     }
 
-    /**
-     * Reserva fondos en la cuenta (bloqueo).
-     */
-    public boolean reservarFondos(Long idCuenta, java.math.BigDecimal monto, String traceId) {
+    public boolean reservarFondos(Long idCuenta, BigDecimal monto, String traceId) {
         try {
             TransferenciaRequest request = TransferenciaRequest.newBuilder()
                     .setIdCuenta(idCuenta)
                     .setMonto(monto.toString())
                     .setTraceId(traceId)
                     .build();
-            RespuestaValidacion response = accountStub.reservarFondos(request);
+            RespuestaValidacion response = stub.reservarFondos(request);
             return response.getExito();
         } catch (Exception e) {
             log.error("Error reservando fondos para cuenta {}: {}", idCuenta, e.getMessage(), e);
@@ -72,17 +82,14 @@ public class AccountServiceGrpcClient {
         }
     }
 
-    /**
-     * Libera una reserva de fondos previamente hecha.
-     */
-    public boolean liberarReserva(Long idCuenta, java.math.BigDecimal monto, String traceId) {
+    public boolean liberarReserva(Long idCuenta, BigDecimal monto, String traceId) {
         try {
             TransferenciaRequest request = TransferenciaRequest.newBuilder()
                     .setIdCuenta(idCuenta)
                     .setMonto(monto.toString())
                     .setTraceId(traceId)
                     .build();
-            RespuestaValidacion response = accountStub.liberarReserva(request);
+            RespuestaValidacion response = stub.liberarReserva(request);
             return response.getExito();
         } catch (Exception e) {
             log.error("Error liberando reserva para cuenta {}: {}", idCuenta, e.getMessage(), e);
@@ -90,17 +97,14 @@ public class AccountServiceGrpcClient {
         }
     }
 
-    /**
-     * Aplica el débito de la transferencia en la cuenta origen.
-     */
-    public boolean aplicarDebito(Long idCuenta, java.math.BigDecimal monto, String traceId) {
+    public boolean aplicarDebito(Long idCuenta, BigDecimal monto, String traceId) {
         try {
             TransferenciaRequest request = TransferenciaRequest.newBuilder()
                     .setIdCuenta(idCuenta)
                     .setMonto(monto.toString())
                     .setTraceId(traceId)
                     .build();
-            RespuestaValidacion response = accountStub.aplicarDebito(request);
+            RespuestaValidacion response = stub.aplicarDebito(request);
             return response.getExito();
         } catch (Exception e) {
             log.error("Error aplicando débito para cuenta {}: {}", idCuenta, e.getMessage(), e);
@@ -108,17 +112,14 @@ public class AccountServiceGrpcClient {
         }
     }
 
-    /**
-     * Revierte un débito previamente aplicado.
-     */
-    public boolean revertirDebito(Long idCuenta, java.math.BigDecimal monto, String traceId) {
+    public boolean revertirDebito(Long idCuenta, BigDecimal monto, String traceId) {
         try {
             TransferenciaRequest request = TransferenciaRequest.newBuilder()
                     .setIdCuenta(idCuenta)
                     .setMonto(monto.toString())
                     .setTraceId(traceId)
                     .build();
-            RespuestaValidacion response = accountStub.revertirDebito(request);
+            RespuestaValidacion response = stub.revertirDebito(request);
             return response.getExito();
         } catch (Exception e) {
             log.error("Error revirtiendo débito para cuenta {}: {}", idCuenta, e.getMessage(), e);
@@ -126,17 +127,14 @@ public class AccountServiceGrpcClient {
         }
     }
 
-    /**
-     * Aplica el crédito de la transferencia en la cuenta destino.
-     */
-    public boolean aplicarCredito(Long idCuenta, java.math.BigDecimal monto, String traceId) {
+    public boolean aplicarCredito(Long idCuenta, BigDecimal monto, String traceId) {
         try {
             TransferenciaRequest request = TransferenciaRequest.newBuilder()
                     .setIdCuenta(idCuenta)
                     .setMonto(monto.toString())
                     .setTraceId(traceId)
                     .build();
-            RespuestaValidacion response = accountStub.aplicarCredito(request);
+            RespuestaValidacion response = stub.aplicarCredito(request);
             return response.getExito();
         } catch (Exception e) {
             log.error("Error aplicando crédito para cuenta {}: {}", idCuenta, e.getMessage(), e);
@@ -144,17 +142,14 @@ public class AccountServiceGrpcClient {
         }
     }
 
-    /**
-     * Revierte un crédito previamente aplicado.
-     */
-    public boolean revertirCredito(Long idCuenta, java.math.BigDecimal monto, String traceId) {
+    public boolean revertirCredito(Long idCuenta, BigDecimal monto, String traceId) {
         try {
             TransferenciaRequest request = TransferenciaRequest.newBuilder()
                     .setIdCuenta(idCuenta)
                     .setMonto(monto.toString())
                     .setTraceId(traceId)
                     .build();
-            RespuestaValidacion response = accountStub.revertirCredito(request);
+            RespuestaValidacion response = stub.revertirCredito(request);
             return response.getExito();
         } catch (Exception e) {
             log.error("Error revirtiendo crédito para cuenta {}: {}", idCuenta, e.getMessage(), e);
@@ -162,17 +157,14 @@ public class AccountServiceGrpcClient {
         }
     }
 
-    /**
-     * Aplica una comisión en la cuenta.
-     */
-    public boolean aplicarComision(Long idCuenta, java.math.BigDecimal monto, String traceId) {
+    public boolean aplicarComision(Long idCuenta, BigDecimal monto, String traceId) {
         try {
             TransferenciaRequest request = TransferenciaRequest.newBuilder()
                     .setIdCuenta(idCuenta)
                     .setMonto(monto.toString())
                     .setTraceId(traceId)
                     .build();
-            RespuestaValidacion response = accountStub.aplicarComision(request);
+            RespuestaValidacion response = stub.aplicarComision(request);
             return response.getExito();
         } catch (Exception e) {
             log.error("Error aplicando comisión para cuenta {}: {}", idCuenta, e.getMessage(), e);

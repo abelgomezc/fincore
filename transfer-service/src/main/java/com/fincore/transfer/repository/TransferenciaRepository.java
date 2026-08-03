@@ -2,6 +2,9 @@ package com.fincore.transfer.repository;
 
 import com.fincore.transfer.entity.Transferencia;
 import com.fincore.transfer.enums.EstadoTransferencia;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repositorio de transferencias.
@@ -20,7 +24,7 @@ import java.util.List;
 @Repository
 public interface TransferenciaRepository extends JpaRepository<Transferencia, Long>, JpaSpecificationExecutor<Transferencia> {
 
-    java.util.Optional<Transferencia> findByNumeroTransferencia(String numeroTransferencia);
+    Optional<Transferencia> findByNumeroTransferencia(String numeroTransferencia);
 
     List<Transferencia> findByIdCuentaOrigen(Long idCuentaOrigen);
 
@@ -36,13 +40,13 @@ public interface TransferenciaRepository extends JpaRepository<Transferencia, Lo
 
     List<Transferencia> findByFechaIniciadaBetweenAndIdCuentaOrigen(LocalDateTime desde, LocalDateTime hasta, Long idCuentaOrigen);
 
-    org.springframework.data.domain.Page<Transferencia> findByIdUsuario(String idUsuario, org.springframework.data.domain.Pageable pageable);
+    Page<Transferencia> findByIdUsuario(String idUsuario, Pageable pageable);
 
-    @Lock(org.springframework.data.jpa.repository.LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM Transferencia t WHERE t.id = :id")
-    java.util.Optional<Transferencia> findByIdWithLock(@Param("id") Long id);
+    Optional<Transferencia> findByIdWithLock(@Param("id") Long id);
 
-    @Lock(org.springframework.data.jpa.repository.LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM Transferencia t WHERE t.numeroTransferencia = :numero")
-    java.util.Optional<Transferencia> findByNumeroTransferenciaWithLock(@Param("numero") String numeroTransferencia);
+    Optional<Transferencia> findByNumeroTransferenciaWithLock(@Param("numero") String numeroTransferencia);
 }

@@ -45,10 +45,9 @@ public class TransferenciaEventConsumer {
     @KafkaListener(topics = "audit.transferencia.completada", groupId = "transfer-service-group")
     public void handleAuditCompletada(@Payload Map<String, Object> evento,
                                       @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                      @Header(KafkaHeaders.RECEIVED_PARTITION_ID) int partition,
                                       @Header(KafkaHeaders.OFFSET) long offset) {
-        log.info("Evento audit.transferencia.completada recibido: topic={}, partition={}, offset={}",
-                topic, partition, offset);
+        log.info("Evento audit.transferencia.completada recibido: topic={}, offset={}",
+                topic, offset);
 
         try {
             Long idTransferencia = Long.valueOf(evento.get("transferenciaId").toString());

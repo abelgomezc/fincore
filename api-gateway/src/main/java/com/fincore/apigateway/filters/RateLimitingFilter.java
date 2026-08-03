@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.core.Ordered;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -15,12 +13,12 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Filtro de rate limiting por IP.
  *
- * Limita el número de peticiones por minuto por dirección IP usando Redis.
+ * Limita el número de peticiones por minuto por dirección IP usando memoria concurrente.
  * Configuración: 100 req/min con burst capacity de 20.
  *
  * © 2026 Abel Gomez. Todos los derechos reservados.
@@ -29,18 +27,23 @@ import java.time.temporal.ChronoUnit;
 @Slf4j
 public class RateLimitingFilter implements GatewayFilter, Ordered {
 
-    private final ReactiveRedisTemplate<String, String> redisTemplate;
+    private final int maxRequestsPerMinute;
+    private final int burstCapacity;
 
-    @Value("${gateway.rate-limit.requests-per-minute:100}")
-    private int maxRequestsPerMinute;
-
-    @Value("${gateway.rate-limit.burst-capacity:20}")
-    private int burstCapacity;
+    private final ConcurrentHashMap<String, Integer> requestCounts = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> resetTimes = new ConcurrentHashMap<>();
 
     private static final String REDIS_KEY_PREFIX = "rate_limit:";
 
-    public RateLimitingFilter(ReactiveRedisTemplate<String, String> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public RateLimitingFilter(@Value("${gateway.rate-limit.requests-per-minute:100}") int maxRequestsPerMinute,
+                              @Value("${gateway.rate-limit.burst-capacity:20}") int burstCapacity) {
+        this.maxRequestsPerMinute = maxRequestsPerMinute;
+        this.burstCapacity = burstCapacity;
+    }
+
+    public RateLimitingFilter(int maxRequestsPerMinute) {
+        this.maxRequestsPerMinute = maxRequestsPerMinute;
+        this.burstCapacity = 20;
     }
 
     @Override
@@ -52,25 +55,24 @@ public class RateLimitingFilter implements GatewayFilter, Ordered {
             return chain.filter(exchange);
         }
 
-        String redisKey = REDIS_KEY_PREFIX + clientIp;
-        String now = String.valueOf(Instant.now().getEpochSecond());
+        long now = Instant.now().getEpochSecond();
+        long minute = now / 60;
+        String key = REDIS_KEY_PREFIX + clientIp + ":" + minute;
 
-        return redisTemplate.opsForValue().increment(redisKey)
-                .flatMap(count -> {
-                    if (count == 1L) {
-                        // Primera petición — establecer TTL de 1 minuto
-                        return redisTemplate.expire(redisKey, 60, java.util.concurrent.TimeUnit.SECONDS)
-                                .then(Mono.just(count));
-                    }
-                    return Mono.just(count);
-                })
-                .flatMap(count -> {
-                    if (count > maxRequestsPerMinute + burstCapacity) {
-                        log.warn("Rate limit excedido para IP: {} ({} requests)", clientIp, count);
-                        return tooManyRequests(exchange, clientIp, (int) count);
-                    }
-                    return chain.filter(exchange);
-                });
+        Long resetTime = resetTimes.get(key);
+        if (resetTime == null || resetTime <= now) {
+            requestCounts.put(key, 0);
+            resetTimes.put(key, now + 60);
+        }
+
+        int count = requestCounts.compute(key, (k, v) -> v == null ? 1 : v + 1);
+
+        if (count > maxRequestsPerMinute + burstCapacity) {
+            log.warn("Rate limit excedido para IP: {} ({} requests)", clientIp, count);
+            return tooManyRequests(exchange, clientIp, count);
+        }
+
+        return chain.filter(exchange);
     }
 
     private String getClientIp(ServerHttpRequest request) {
