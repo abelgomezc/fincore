@@ -150,24 +150,15 @@
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
                             </exclude>
-                            <exclude>
-                                <groupId>io.grpc</groupId>
-                                <artifactId>grpc-protobuf</artifactId>
-                            </exclude>
-                            <exclude>
-                                <groupId>io.grpc</groupId>
-                                <artifactId>grpc-stub</artifactId>
-                            </exclude>
-                            <exclude>
-                                <groupId>io.grpc</groupId>
-                                <artifactId>grpc-protobuf-lite</artifactId>
-                            </exclude>
-                            <exclude>
-                                <groupId>io.grpc</groupId>
-                                <artifactId>grpc-protobuf-lite-javautil</artifactId>
-                            </exclude>
                         </excludes>
                     </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

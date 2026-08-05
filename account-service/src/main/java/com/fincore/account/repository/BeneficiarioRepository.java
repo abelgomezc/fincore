@@ -18,5 +18,5 @@ public interface BeneficiarioRepository extends JpaRepository<Beneficiario, Long
 
     List<Beneficiario> findByIdCliente(Long idCliente);
 
-    boolean existsByIdClienteAndIdCuentaBeneficiario(Long idCliente, Long idCuentaBeneficiario);
+    boolean existsByIdClienteAndCuentaBeneficiario_Id(Long idCliente, Long idCuentaBeneficiario);
 }

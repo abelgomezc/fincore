@@ -1,6 +1,7 @@
 import React from 'react';
 import { AsientoCard, AsientoLinea } from '@/components/ledger/AsientoCard';
 import { clsx } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface LedgerExtractProps {
   asientos: Array<{
@@ -21,7 +22,7 @@ export const LedgerExtract: React.FC<LedgerExtractProps> = ({ asientos, isLoadin
     return (
       <div className="space-y-4">
         {Array(5).fill(0).map((_, i) => (
-          <div key={i} className="bg-surface-800 rounded-xl p-6 animate-pulse h-48"></div>
+          <div key={i} className="bg-surface-100 rounded-xl p-6 animate-pulse h-48 border border-surface-200"></div>
         ))}
       </div>
     );
@@ -37,15 +38,26 @@ export const LedgerExtract: React.FC<LedgerExtractProps> = ({ asientos, isLoadin
 
   return (
     <div className="space-y-4">
-      {asientos.map((asiento) => (
-        <AsientoCard key={asiento.idAsiento} {...asiento} />
+      {asientos.map((asiento, index) => (
+        <motion.div
+          key={asiento.idAsiento}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.03 }}
+        >
+          <AsientoCard {...asiento} />
+        </motion.div>
       ))}
 
-      <div className="flex justify-center pt-4">
-        <button className="px-4 py-2 text-sm text-surface-300 hover:text-surface-100 transition-colors">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex justify-center pt-4"
+      >
+        <button className="px-4 py-2 text-sm text-surface-500 hover:text-primary-600 transition-colors hover:bg-surface-100 rounded-lg">
           Cargar más...
         </button>
-      </div>
+      </motion.div>
     </div>
   );
 };

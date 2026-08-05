@@ -1,6 +1,7 @@
 package com.fincore.apigateway.filters;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -35,6 +36,7 @@ public class RateLimitingFilter implements GatewayFilter, Ordered {
 
     private static final String REDIS_KEY_PREFIX = "rate_limit:";
 
+    @Autowired
     public RateLimitingFilter(@Value("${gateway.rate-limit.requests-per-minute:100}") int maxRequestsPerMinute,
                               @Value("${gateway.rate-limit.burst-capacity:20}") int burstCapacity) {
         this.maxRequestsPerMinute = maxRequestsPerMinute;

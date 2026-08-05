@@ -1,13 +1,35 @@
 import React from 'react';
-import { Transferencia } from '@/types/transfer';
+import { Transferencia, PasoTransferencia, EstadoTransferencia } from '@/types/transfer';
 import { EvaluacionFraude } from '@/types/fraud';
 import { clsx } from '@/lib/utils';
+import { Card, Badge, Button } from '@/components/ui';
+import {
+  Clock,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+  FileBarChart2,
+  TrendingUp,
+  TrendingDown,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface TransferReviewListProps {
   transferencias: Transferencia[];
   onSelect?: (transferencia: Transferencia) => void;
   isLoading?: boolean;
 }
+
+const estadoBadgeConfig: Record<EstadoTransferencia | string, { variant: 'warning' | 'danger' | 'success' | 'info' | 'neutral' | 'primary'; icon: React.ReactNode }> = {
+  PENDIENTE: { variant: 'warning', icon: <Clock className="w-4 h-4" /> },
+  VALIDANDO: { variant: 'primary', icon: <Shield className="w-4 h-4" /> },
+  COMPLETADA: { variant: 'success', icon: <CheckCircle className="w-4 h-4" /> },
+  FALLIDA: { variant: 'danger', icon: <XCircle className="w-4 h-4" /> },
+  REVERTIDA: { variant: 'warning', icon: <RefreshCw className="w-4 h-4" /> },
+  EN_REVISION: { variant: 'warning', icon: <AlertTriangle className="w-4 h-4" /> },
+};
 
 export const TransferReviewList: React.FC<TransferReviewListProps> = ({
   transferencias,
@@ -18,7 +40,7 @@ export const TransferReviewList: React.FC<TransferReviewListProps> = ({
     return (
       <div className="space-y-3">
         {Array(5).fill(0).map((_, i) => (
-          <div key={i} className="bg-surface-800 rounded-lg p-4 animate-pulse h-20"></div>
+          <div key={i} className="bg-surface-100 rounded-lg p-4 animate-pulse h-20 border border-surface-200"></div>
         ))}
       </div>
     );
@@ -26,43 +48,51 @@ export const TransferReviewList: React.FC<TransferReviewListProps> = ({
 
   if (transferencias.length === 0) {
     return (
-      <div className="text-center py-8 text-surface-500">
-        No hay transferencias en revisión
-      </div>
+      <Card className="text-center py-8">
+        <Clock className="w-12 h-12 mx-auto mb-3 text-surface-300" />
+        <p className="text-surface-500">No hay transferencias en revisión</p>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-3">
-      {transferencias.map((t) => (
-        <div
-          key={t.id}
-          className="bg-surface-800 rounded-lg p-4 border border-surface-700 hover:bg-surface-700/50 cursor-pointer transition-colors"
-          onClick={() => onSelect?.(t)}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="font-medium text-surface-100">{t.numeroTransferencia}</span>
-              <p className="text-sm text-surface-400 mt-1">
-                {t.idUsuarioOrigen} → {t.idUsuarioDestino}
-              </p>
+      {transferencias.map((t, index) => {
+        const config = estadoBadgeConfig[t.estado] || estadoBadgeConfig.PENDIENTE;
+        return (
+          <motion.div
+            key={t.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="bg-card-50 rounded-lg p-4 border border-surface-200 hover:shadow-card-hover cursor-pointer transition-all"
+            onClick={() => onSelect?.(t)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <RefreshCw className="w-5 h-5 text-primary-500" />
+                <div>
+                  <span className="font-medium text-dark-500">{t.numeroTransferencia}</span>
+                  <p className="text-sm text-surface-500 mt-1">
+                    {t.idUsuarioOrigen} → {t.idUsuarioDestino}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="font-semibold text-dark-500">
+                  ${t.monto.toFixed(2)} {t.moneda}
+                </span>
+                <div className="mt-1">
+                  <Badge variant={config.variant} size="sm">
+                    {config.icon}
+                    <span className="ml-1">{t.estado}</span>
+                  </Badge>
+                </div>
+              </div>
             </div>
-            <div className="text-right">
-              <span className="font-semibold text-surface-100">
-                ${t.monto.toFixed(2)} {t.moneda}
-              </span>
-              <span className={clsx(
-                'ml-2 px-2 py-1 rounded-full text-xs',
-                t.estado === 'COMPLETADA' ? 'bg-banking-success/20 text-banking-success' :
-                t.estado === 'FALLIDA' || t.estado === 'REVERTIDA' ? 'bg-banking-error/20 text-banking-error' :
-                'bg-banking-warning/20 text-banking-warning'
-              )}>
-                {t.estado}
-              </span>
-            </div>
-          </div>
-        </div>
-      ))}
+          </motion.div>
+        );
+      })}
     </div>
   );
 };
@@ -77,7 +107,7 @@ export const FraudAlertList: React.FC<FraudAlertListProps> = ({ evaluaciones, is
     return (
       <div className="space-y-3">
         {Array(5).fill(0).map((_, i) => (
-          <div key={i} className="bg-surface-800 rounded-lg p-4 animate-pulse h-16"></div>
+          <div key={i} className="bg-surface-100 rounded-lg p-4 animate-pulse h-16 border border-surface-200"></div>
         ))}
       </div>
     );
@@ -87,43 +117,54 @@ export const FraudAlertList: React.FC<FraudAlertListProps> = ({ evaluaciones, is
 
   if (alerts.length === 0) {
     return (
-      <div className="text-center py-8 text-surface-500">
-        No hay alertas de fraude en este momento
-      </div>
+      <Card className="text-center py-8">
+        <Shield className="w-12 h-12 mx-auto mb-3 text-surface-300" />
+        <p className="text-surface-500">No hay alertas de fraude en este momento</p>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-3">
-      {alerts.map((alert) => (
-        <div
-          key={alert.id}
-          className={clsx(
-            'bg-surface-800 rounded-lg p-4 border transition-colors',
-            alert.score >= 70 ? 'border-banking-error' :
-            alert.score >= 45 ? 'border-banking-warning' :
-            'border-banking-warning'
-          )}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="font-medium text-surface-100">
-                Score: {alert.score}/100 — {alert.traceId}
-              </span>
-              <p className="text-sm text-surface-400 mt-1">
-                {alert.reglasEvaluadas?.filter((r) => r.activada).length} reglas activadas
-              </p>
+      {alerts.map((alert, index) => {
+        const scoreColor = alert.score >= 70 ? 'text-danger-600' :
+          alert.score >= 45 ? 'text-warning-600' : 'text-success-600';
+        const scoreBg = alert.score >= 70 ? 'bg-danger-50 border-danger-200' :
+          alert.score >= 45 ? 'bg-warning-50 border-warning-200' : 'bg-success-50 border-success-200';
+
+        return (
+          <motion.div
+            key={alert.id}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className={clsx(
+              'bg-card-50 rounded-lg p-4 border transition-colors',
+              scoreBg
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="font-medium text-dark-500 flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Score: {alert.score}/100</span>
+                </span>
+                <p className="text-xs text-surface-500 mt-1 font-mono">
+                  {alert.traceId}
+                </p>
+                <div className="mt-2 text-xs text-surface-500">
+                  {alert.reglasEvaluadas?.filter((r) => r.activada).length} reglas activadas
+                </div>
+              </div>
+              <div className="text-right">
+                <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', scoreColor)}>
+                  {alert.decision}
+                </span>
+              </div>
             </div>
-            <span className={clsx(
-              'px-2 py-1 rounded-full text-xs font-medium',
-              alert.score >= 70 ? 'bg-banking-error/20 text-banking-error' :
-              'bg-banking-warning/20 text-banking-warning'
-            )}>
-              {alert.decision}
-            </span>
-          </div>
-        </div>
-      ))}
+          </motion.div>
+        );
+      })}
     </div>
   );
 };
@@ -138,7 +179,7 @@ export const ReportsPanel: React.FC<ReportsPanelProps> = ({ conciliacion, isLoad
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {Array(3).fill(0).map((_, i) => (
-          <div key={i} className="bg-surface-800 rounded-xl p-6 animate-pulse h-32"></div>
+          <div key={i} className="bg-surface-100 rounded-xl p-6 animate-pulse h-32 border border-surface-200"></div>
         ))}
       </div>
     );
@@ -146,24 +187,27 @@ export const ReportsPanel: React.FC<ReportsPanelProps> = ({ conciliacion, isLoad
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="bg-surface-800 rounded-xl p-6 border border-surface-700">
-        <h3 className="text-sm font-medium text-surface-400 mb-2">Total Transferencias</h3>
-        <p className="text-2xl font-bold text-surface-100">
-          {(conciliacion as any)?.total ?? 'N/A'}
+      <Card className="text-center p-4">
+        <FileBarChart2 className="w-8 h-8 text-primary-500 mx-auto mb-2" />
+        <h3 className="text-sm font-medium text-surface-500 mb-2">Total Transferencias</h3>
+        <p className="text-2xl font-bold text-dark-500">
+          {(conciliacion as any)?.total ?? '0'}
         </p>
-      </div>
-      <div className="bg-surface-800 rounded-xl p-6 border border-surface-700">
-        <h3 className="text-sm font-medium text-surface-400 mb-2">Total Débitos</h3>
-        <p className="text-2xl font-bold text-banking-error">
+      </Card>
+      <Card className="text-center p-4">
+        <TrendingDown className="w-8 h-8 text-danger-500 mx-auto mb-2" />
+        <h3 className="text-sm font-medium text-surface-500 mb-2">Total Débitos</h3>
+        <p className="text-2xl font-bold text-danger-600">
           ${(conciliacion as any)?.totalDebitos?.toFixed(2) ?? '0.00'}
         </p>
-      </div>
-      <div className="bg-surface-800 rounded-xl p-6 border border-surface-700">
-        <h3 className="text-sm font-medium text-surface-400 mb-2">Total Créditos</h3>
-        <p className="text-2xl font-bold text-banking-success">
+      </Card>
+      <Card className="text-center p-4">
+        <TrendingUp className="w-8 h-8 text-success-500 mx-auto mb-2" />
+        <h3 className="text-sm font-medium text-surface-500 mb-2">Total Créditos</h3>
+        <p className="text-2xl font-bold text-success-600">
           ${(conciliacion as any)?.totalCreditos?.toFixed(2) ?? '0.00'}
         </p>
-      </div>
+      </Card>
     </div>
   );
 };

@@ -5,7 +5,17 @@ import { auditApi } from '@/api/auditApi';
 import { RegistroAuditoria } from '@/types/audit';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '@/lib/utils';
-import { clsx } from '@/lib/utils';
+import { Card, Button, Badge } from '@/components/ui';
+import {
+  Search,
+  Filter,
+  Activity,
+  Check,
+  X,
+  RefreshCw,
+  Calendar,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const AuditPage: React.FC = () => {
   const navigate = useNavigate();
@@ -42,72 +52,119 @@ export const AuditPage: React.FC = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-surface-950 flex">
+    <div className="min-h-screen bg-surface-50 flex">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden ml-64">
         <Header />
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-surface-100">Auditoría y Trazabilidad</h1>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center justify-between mb-6"
+            >
+              <h1 className="text-2xl font-bold text-dark-500 flex items-center">
+                <Activity className="w-6 h-6 mr-3 text-primary-600" />
+                Auditoría y Trazabilidad
+              </h1>
+            </motion.div>
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  placeholder="Filtrar por Trace ID..."
-                  value={traceIdFilter}
-                  onChange={(e) => setTraceIdFilter(e.target.value)}
-                  className="px-3 py-2 bg-surface-800 border border-surface-600 rounded-lg text-surface-100 placeholder-surface-500"
-                />
-                <button
-                  onClick={cargarTrail}
-                  disabled={isLoading}
-                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-lg text-white transition-colors"
-                >
-                  Filtrar
-                </button>
-              </div>
-            </div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+              <Card icon={<Search className="w-5 h-5 text-primary-500" />} title="Filtros de búsqueda" className="mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" />
+                    <input
+                      type="text"
+                      placeholder="Filtrar por Trace ID..."
+                      value={traceIdFilter}
+                      onChange={(e) => setTraceIdFilter(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2.5 border border-surface-300 rounded-lg text-dark-500 placeholder-surface-400 bg-surface-50 focus:border-primary-500 focus:outline-none"
+                    />
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    icon={<Filter className="w-4 h-4" />}
+                    onClick={cargarTrail}
+                    disabled={isLoading}
+                  >
+                    Filtrar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="md"
+                    icon={<RefreshCw className="w-4 h-4" />}
+                    onClick={() => { setTraceIdFilter(''); cargarTrail(); }}
+                    disabled={isLoading}
+                  >
+                    Limpiar
+                  </Button>
+                </div>
+              </Card>
+            </motion.div>
 
             {isLoading ? (
-              <div className="text-center py-8 text-surface-500">Cargando...</div>
+              <div className="text-center py-12 text-surface-400">
+                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                Cargando registros de auditoría...
+              </div>
             ) : trail.length === 0 ? (
-              <div className="text-center py-12 text-surface-500">
-                No se encontraron registros de auditoría
-              </div>
+              <Card className="text-center py-12">
+                <Activity className="w-12 h-12 mx-auto mb-3 text-surface-300" />
+                <p className="text-surface-500">No se encontraron registros de auditoría</p>
+              </Card>
             ) : (
-              <div className="space-y-3">
-                {trail.map((registro) => (
-                  <div
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="space-y-3"
+              >
+                {trail.map((registro, index) => (
+                  <motion.div
                     key={registro.id}
-                    className="bg-surface-800 rounded-lg p-4 border border-surface-700"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 + index * 0.03 }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="font-medium text-surface-100">{registro.accion}</span>
-                        <span className="text-sm text-surface-500 ml-2">— {registro.servicio}</span>
+                    <Card className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-1.5 bg-surface-100 rounded-lg">
+                            {registro.resultado === 'EXITOSO' ? (
+                              <Check className="w-5 h-5 text-success-500" />
+                            ) : (
+                              <X className="w-5 h-5 text-danger-500" />
+                            )}
+                          </div>
+                          <div>
+                            <span className="font-medium text-dark-500">{registro.accion}</span>
+                            <span className="text-sm text-surface-500 ml-2">— {registro.servicio}</span>
+                          </div>
+                        </div>
+                        <Badge variant={registro.resultado === 'EXITOSO' ? 'success' : 'danger'} size="sm">
+                          {registro.resultado}
+                        </Badge>
                       </div>
-                      <span className={clsx(
-                        'px-2 py-1 rounded-full text-xs font-medium',
-                        registro.resultado === 'EXITOSO'
-                          ? 'bg-banking-success/20 text-banking-success'
-                          : 'bg-banking-error/20 text-banking-error'
-                      )}>
-                        {registro.resultado}
-                      </span>
-                    </div>
-                    <div className="text-sm text-surface-400 mt-2">
-                      <span className="font-mono text-xs bg-surface-900 px-2 py-1 rounded">
-                        {registro.traceId}
-                      </span>
-                      <span className="ml-2">{formatDate(registro.fechaCreacion)}</span>
-                    </div>
-                    {registro.detalle && (
-                      <p className="text-xs text-surface-500 mt-2">{registro.detalle}</p>
-                    )}
-                  </div>
+
+                      <div className="mt-3 flex items-center space-x-4 text-sm text-surface-500">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(registro.fechaCreacion)}</span>
+                        </div>
+                        <span className="font-mono text-xs bg-surface-100 px-2 py-1 rounded text-surface-600">
+                          {registro.traceId}
+                        </span>
+                      </div>
+
+                      {registro.detalle && (
+                        <p className="text-xs text-surface-500 mt-2">{registro.detalle}</p>
+                      )}
+                    </Card>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
         </main>

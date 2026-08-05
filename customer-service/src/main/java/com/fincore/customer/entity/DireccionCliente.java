@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 /**
  * Entidad DireccionCliente — dirección física del cliente.
  *
@@ -44,8 +46,8 @@ public class DireccionCliente extends BaseEntity {
     private String codigoPostal;
 
     @Column(name = "latitud", precision = 10, scale = 8)
-    private Double latitud;
+    private BigDecimal latitud;
 
     @Column(name = "longitud", precision = 11, scale = 8)
-    private Double longitud;
+    private BigDecimal longitud;
 }

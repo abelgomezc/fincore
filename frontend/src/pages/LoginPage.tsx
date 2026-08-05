@@ -1,31 +1,20 @@
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Lock, User, Eye, EyeOff, Landmark, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { Copyright } from '@/components/ui/Copyright';
-import { clsx } from '@/lib/utils';
 
-const schema = yup.object().shape({
-  username: yup.string().required('El usuario es obligatorio'),
-  password: yup.string().required('La contraseña es obligatoria'),
-});
-
-export const LoginPage: React.FC = () => {
-  const { login, error, isLoading } = useAuthStore();
+export const LoginPage = () => {
   const navigate = useNavigate();
+  const { login, error, isLoading } = useAuthStore();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(schema),
-  });
-
-  const onSubmit = async (data: { username: string; password: string }) => {
-    await login(data.username, data.password);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await login(username, password);
     const { isAuthenticated } = useAuthStore.getState();
     if (isAuthenticated) {
       navigate('/');
@@ -33,70 +22,99 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-surface-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 flex items-center justify-center">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md"
+      >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-400 mb-2">FinCore Banking</h1>
-          <p className="text-surface-400">Accede a tu sistema financiero</p>
+          <div className="w-16 h-16 rounded-full bg-blue-900 text-white flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <Landmark className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-1">
+            FinCore Banking
+          </h1>
+          <p className="text-sm text-slate-500">
+            Ingresa tus credenciales para acceder
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1">Usuario</label>
-            <input
-              type="text"
-              {...register('username')}
-              className={clsx(
-                'w-full px-3 py-2 bg-surface-800 border rounded-lg text-surface-100',
-                errors.username ? 'border-banking-error' : 'border-surface-600'
-              )}
-              placeholder="Nombre de usuario"
-            />
-            {errors.username && (
-              <p className="text-banking-error text-xs mt-1">{errors.username.message}</p>
-            )}
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Usuario
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Nombre de usuario"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 pl-10 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-dark placeholder-slate-400"
+                required
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1">Contraseña</label>
-            <input
-              type="password"
-              {...register('password')}
-              className={clsx(
-                'w-full px-3 py-2 bg-surface-800 border rounded-lg text-surface-100',
-                errors.password ? 'border-banking-error' : 'border-surface-600'
-              )}
-              placeholder="••••••••"
-            />
-            {errors.password && (
-              <p className="text-banking-error text-xs mt-1">{errors.password.message}</p>
-            )}
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Contraseña
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 pl-10 pr-12 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-dark placeholder-slate-400"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[14px] text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </div>
 
           {error && (
-            <div className="bg-banking-error/10 border border-banking-error/30 text-banking-error px-3 py-2 rounded-lg text-sm">
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3"
+            >
               {error}
-            </div>
+            </motion.div>
           )}
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-lg font-medium text-white transition-colors"
+            className="w-full py-3 px-4 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-semibold transition-all duration-200 flex items-center justify-center gap-2"
           >
-            {isLoading ? 'Cargando...' : 'Iniciar Sesión'}
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+            ) : (
+              <>
+                <span>Iniciar Sesión</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
+      </motion.div>
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => alert('Contacta al administrador para crear una cuenta')}
-            className="text-sm text-surface-400 hover:text-surface-200"
-          >
-            ¿No tienes una cuenta? Contacta al administrador
-          </button>
-        </div>
-
+      <div className="absolute bottom-6 w-full text-center">
         <Copyright />
       </div>
     </div>

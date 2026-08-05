@@ -15,9 +15,9 @@ import java.util.List;
 @Repository
 public interface SaldoHistoricoRepository extends JpaRepository<SaldoHistorico, Long> {
 
-    List<SaldoHistorico> findByIdCuentaOrderByFechaSnapshotDesc(Long idCuenta);
+    List<SaldoHistorico> findByCuenta_IdOrderByFechaSnapshotDesc(Long idCuenta);
 
-    List<SaldoHistorico> findByIdCuentaAndFechaSnapshotBetween(Long idCuenta, LocalDate desde, LocalDate hasta);
+    List<SaldoHistorico> findByCuenta_IdAndFechaSnapshotBetween(Long idCuenta, LocalDate desde, LocalDate hasta);
 
-    boolean existsByIdCuentaAndFechaSnapshot(Long idCuenta, LocalDate fecha);
+    boolean existsByCuenta_IdAndFechaSnapshot(Long idCuenta, LocalDate fecha);
 }

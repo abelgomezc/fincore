@@ -22,9 +22,9 @@ interface BalanceChartProps {
 export const BalanceChart: React.FC<BalanceChartProps> = ({ saldo, movimientos, isLoading }) => {
   if (isLoading || !movimientos || movimientos.length === 0) {
     return (
-      <div className="bg-surface-800 rounded-xl p-6 animate-pulse">
-        <div className="h-4 bg-surface-700 rounded w-1/4 mb-4"></div>
-        <div className="h-64 bg-surface-700 rounded w-full"></div>
+      <div className="bg-surface-100 rounded-xl p-6 animate-pulse">
+        <div className="h-4 bg-surface-300 rounded w-1/4 mb-4"></div>
+        <div className="h-64 bg-surface-300 rounded w-full"></div>
       </div>
     );
   }
@@ -35,12 +35,12 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({ saldo, movimientos, 
   }));
 
   return (
-    <div className="bg-surface-800 rounded-xl p-6 border border-surface-700">
-      <h3 className="text-lg font-semibold text-surface-100 mb-4">Evolución del Saldo</h3>
+    <div className="bg-card-50 rounded-xl p-6 border border-surface-200">
+      <h3 className="text-lg font-semibold text-dark-500 mb-4">Evolución del Saldo</h3>
       <div className="h-64 w-full">
-        <ResponsiveContainer>
+      <ResponsiveContainer>
           <AreaChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis dataKey="fecha" stroke="#9ca3af" fontSize={12} />
             <YAxis
               stroke="#9ca3af"
@@ -48,14 +48,14 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({ saldo, movimientos, 
               tickFormatter={(value) => formatCurrency(value)}
             />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+              contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}
               formatter={(value: number) => [formatCurrency(value), 'Saldo']}
-              labelClassName="text-surface-300"
+              labelClassName="text-dark-500"
             />
             <Area
               type="monotone"
               dataKey="saldo"
-              stroke="#0ea5e9"
+              stroke="#1B4F8A"
               fill="url(#colorBalance)"
               strokeWidth={2}
               dot={{ r: 3 }}
@@ -63,8 +63,8 @@ export const BalanceChart: React.FC<BalanceChartProps> = ({ saldo, movimientos, 
             />
             <defs>
               <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                <stop offset="5%" stopColor="#1B4F8A" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#1B4F8A" stopOpacity={0} />
               </linearGradient>
             </defs>
           </AreaChart>

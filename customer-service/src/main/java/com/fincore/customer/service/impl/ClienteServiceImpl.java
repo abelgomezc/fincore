@@ -366,8 +366,8 @@ public class ClienteServiceImpl implements ClienteService {
                 .provincia(dir.getProvincia())
                 .pais(dir.getPais())
                 .codigoPostal(dir.getCodigoPostal())
-                .latitud(dir.getLatitud())
-                .longitud(dir.getLongitud())
+                .latitud(dir.getLatitud() != null ? dir.getLatitud().doubleValue() : null)
+                .longitud(dir.getLongitud() != null ? dir.getLongitud().doubleValue() : null)
                 .build();
     }
 
