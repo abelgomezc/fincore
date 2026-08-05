@@ -4,7 +4,7 @@ import { TransferDemoLive } from '@/components/transfer/TransferDemoLive';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Send } from 'lucide-react';
+import { IconTransfer } from '@tabler/icons-react';
 
 export const TransferPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export const TransferPage: React.FC = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-surface-50 flex">
+    <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden ml-64">
         <Header />
@@ -31,8 +31,8 @@ export const TransferPage: React.FC = () => {
               transition={{ duration: 0.4 }}
               className="flex items-center justify-between mb-6"
             >
-              <h1 className="text-2xl font-bold text-dark-500 flex items-center">
-                <Send className="w-6 h-6 mr-3 text-primary-600" />
+              <h1 className="text-3xl font-bold text-slate-800 flex items-center">
+                <IconTransfer className="w-7 h-7 mr-3 text-blue-600" />
                 Transferencias
               </h1>
             </motion.div>

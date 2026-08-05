@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
@@ -21,6 +21,20 @@ const queryClient = new QueryClient({
   },
 });
 
+const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const darkMode = useAuthStore((state) => state.darkMode);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  return <>{children}</>;
+};
+
 const RequireAuth = () => {
   const { isAuthenticated, checkAuth } = useAuthStore();
   const isAuthed = checkAuth() || isAuthenticated;
@@ -35,18 +49,6 @@ const RequireAdmin = () => {
   const isAdmin = user?.roles?.some((r) => r === 'ADMIN' || r === 'SUPER_ADMIN' || r === 'AFRICANO');
   if (!isAdmin) return <Navigate to="/" replace />;
   return <Outlet />;
-};
-
-const pageVariants = {
-  initial: { opacity: 0, y: 20 },
-  in: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-};
-
-const pageTransition = {
-  type: 'tween',
-  duration: 0.3,
-  ease: 'anticipate',
 };
 
 const AnimatedRoutes: React.FC = () => {
@@ -81,9 +83,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-         <div className="min-h-screen bg-surface-50 text-dark font-sans">
-          <AnimatedRoutes />
-        </div>
+        <ThemeProvider>
+          <div className="min-h-screen bg-slate-50 text-slate-800 font-sans dark:bg-slate-900 dark:text-slate-100">
+            <AnimatedRoutes />
+          </div>
+        </ThemeProvider>
       </Router>
     </QueryClientProvider>
   );

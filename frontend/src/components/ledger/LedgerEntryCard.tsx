@@ -2,7 +2,7 @@ import React from 'react';
 import { clsx, formatCurrency, formatDate } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { BookOpen, CheckCircle, XCircle } from 'lucide-react';
+import { IconBook, IconCheck, IconX } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 
 export interface AsientoLinea {
@@ -39,16 +39,16 @@ export const LedgerEntryCard: React.FC<LedgerEntryCardProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card-50 rounded-xl border border-surface-200 p-6 shadow-card"
+      className="bg-white rounded-xl border border-slate-200 p-6 shadow-card"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-primary-50 rounded-lg">
-            <BookOpen className="w-5 h-5 text-primary-600" />
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <IconBook className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-dark-500">{numeroAsiento}</h3>
-            <p className="text-sm text-surface-500">{descripcion}</p>
+            <h3 className="text-lg font-semibold text-slate-800">{numeroAsiento}</h3>
+            <p className="text-sm text-slate-500">{descripcion}</p>
           </div>
         </div>
         <Badge variant={estado === 'REVERTIDO' ? 'warning' : 'success'} size="sm">
@@ -56,7 +56,7 @@ export const LedgerEntryCard: React.FC<LedgerEntryCardProps> = ({
         </Badge>
       </div>
 
-      <div className="text-xs text-surface-400 mb-4">
+      <div className="text-xs text-slate-400 mb-4">
         {formatDate(fechaCreacion)}
       </div>
 
@@ -68,17 +68,17 @@ export const LedgerEntryCard: React.FC<LedgerEntryCardProps> = ({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.03 }}
             className={clsx(
-              'flex items-center justify-between p-2 rounded-lg',
+              'flex items-center justify-between p-3 rounded-lg border',
               linea.tipoMovimiento === 'DEBITO'
-                ? 'bg-danger-50 border border-danger-200'
-                : 'bg-success-50 border border-success-200'
+                ? 'bg-red-50 border-red-200'
+                : 'bg-green-50 border-green-200'
             )}
           >
             <div className="flex items-center space-x-3">
-              <span className="font-mono text-xs text-surface-500 bg-surface-100 px-2 py-1 rounded">
+              <span className="font-mono text-xs text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
                 {linea.codigoCuenta}
               </span>
-              <span className="text-sm text-dark-500">{linea.nombreCuenta}</span>
+              <span className="text-sm text-slate-700">{linea.nombreCuenta}</span>
             </div>
             <div className="flex items-center space-x-3">
               <Badge variant={linea.tipoMovimiento === 'DEBITO' ? 'danger' : 'success'} size="sm">
@@ -86,7 +86,7 @@ export const LedgerEntryCard: React.FC<LedgerEntryCardProps> = ({
               </Badge>
               <span className={clsx(
                 'font-medium',
-                linea.tipoMovimiento === 'DEBITO' ? 'text-success-600' : 'text-danger-600'
+                linea.tipoMovimiento === 'DEBITO' ? 'text-green-600' : 'text-red-600'
               )}>
                 {formatCurrency(linea.monto)}
               </span>
@@ -95,27 +95,31 @@ export const LedgerEntryCard: React.FC<LedgerEntryCardProps> = ({
         ))}
       </div>
 
-      <div className="border-t border-surface-200 pt-3 space-y-2">
+      <div className="border-t border-slate-200 pt-3 space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-surface-500">Total Débitos</span>
-          <span className="text-success-600 font-medium">{formatCurrency(totalDebitos)}</span>
+          <span className="text-slate-500">Total Débitos</span>
+          <span className="text-green-600 font-medium">{formatCurrency(totalDebitos)}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-surface-500">Total Créditos</span>
-          <span className="text-danger-600 font-medium">{formatCurrency(totalCreditos)}</span>
+          <span className="text-slate-500">Total Créditos</span>
+          <span className="text-red-600 font-medium">{formatCurrency(totalCreditos)}</span>
         </div>
-        <div className="flex justify-between text-sm font-semibold pt-2 border-t border-surface-200">
-          <span className="text-surface-600">Balance</span>
-          <span className={clsx(
-            isBalanced ? 'text-success-600' : 'text-danger-600'
-          )}>
+        <div className={clsx(
+          'flex justify-between text-sm font-semibold pt-2 border-t',
+          isBalanced ? 'border-slate-200' : 'border-red-200'
+        )}>
+          <span className="text-slate-600">Balance</span>
+          <span className={clsx(isBalanced ? 'text-green-600' : 'text-red-600')}>
             {isBalanced ? (
               <span className="flex items-center">
-                <CheckCircle className="w-4 h-4 mr-1" />
+                <IconCheck className="w-4 h-4 mr-1" />
                 Cuadrado
               </span>
             ) : (
-              formatCurrency(totalDebitos - totalCreditos)
+              <span className="flex items-center">
+                <IconX className="w-4 h-4 mr-1" />
+                {formatCurrency(totalDebitos - totalCreditos)}
+              </span>
             )}
           </span>
         </div>

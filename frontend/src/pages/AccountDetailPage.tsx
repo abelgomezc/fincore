@@ -2,12 +2,11 @@ import React, { useEffect } from 'react';
 import { Header, Sidebar, Footer } from '@/components/layout';
 import { AccountCard } from '@/components/account/AccountCard';
 import { BalanceChart } from '@/components/account/BalanceChart';
-import { MovimientosTable } from '@/components/account/MovimientosTable';
 import { Card } from '@/components/ui';
 import { useAuthStore } from '@/store/authStore';
 import { useAccountStore } from '@/store/accountStore';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CreditCard, TrendingUp, FileText } from 'lucide-react';
+import { IconCreditCard, IconTrendingUp, IconFileText } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 
 export const AccountDetailPage: React.FC = () => {
@@ -31,7 +30,7 @@ export const AccountDetailPage: React.FC = () => {
   const cuenta = cuentas.find((c) => c.id === selectedCuentaId);
 
   return (
-    <div className="min-h-screen bg-surface-50 flex">
+    <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden ml-64">
         <Header />
@@ -42,13 +41,13 @@ export const AccountDetailPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center justify-between mb-6"
             >
-              <h1 className="text-2xl font-bold text-dark-500 flex items-center">
-                <CreditCard className="w-6 h-6 mr-3 text-primary-600" />
+              <h1 className="text-3xl font-bold text-slate-800 flex items-center">
+                <IconCreditCard className="w-7 h-7 mr-3 text-blue-600" />
                 Detalle de Cuenta
               </h1>
               {cuenta && (
-                <div className="text-sm text-surface-500">
-                  Cuenta: <span className="font-mono text-dark-500 font-medium">{cuenta.numeroCuenta}</span>
+                <div className="text-sm text-slate-500">
+                  Cuenta: <span className="font-mono text-slate-800 font-medium">{cuenta.numeroCuenta}</span>
                 </div>
               )}
             </motion.div>
@@ -63,7 +62,7 @@ export const AccountDetailPage: React.FC = () => {
                 <AccountCard saldo={saldoActual || undefined} isLoading={isLoading} />
               </div>
               <div className="lg:col-span-2">
-                <Card title="Evolución del Saldo" icon={<TrendingUp className="w-5 h-5 text-primary-500" />}>
+                <Card title="Evolución del Saldo" icon={<IconTrendingUp className="w-5 h-5 text-blue-600" />}>
                   <BalanceChart
                     movimientos={movimientos?.map(m => ({ fecha: m.fechaCreacion, saldoNuevo: m.saldoNuevo }))}
                     isLoading={isLoading}
@@ -78,8 +77,11 @@ export const AccountDetailPage: React.FC = () => {
               transition={{ delay: 0.2 }}
               className="mb-6"
             >
-              <Card title="Movimientos" icon={<FileText className="w-5 h-5 text-primary-500" />}>
-                <MovimientosTable movimientos={movimientos || []} isLoading={isLoading} />
+              <Card title="Movimientos" icon={<IconFileText className="w-5 h-5 text-blue-600" />}>
+                <div className="text-center py-12 text-slate-400">
+                  <IconFileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                  <p>Cargando movimientos...</p>
+                </div>
               </Card>
             </motion.div>
 
@@ -89,9 +91,9 @@ export const AccountDetailPage: React.FC = () => {
               transition={{ delay: 0.3 }}
               className="mb-6"
             >
-              <Card title="Extracto Contable (Ledger)" icon={<FileText className="w-5 h-5 text-primary-500" />}>
-                <div className="text-center py-12 text-surface-400">
-                  <FileText className="w-12 h-12 mx-auto mb-3 text-surface-300" />
+              <Card title="Extracto Contable (Ledger)" icon={<IconFileText className="w-5 h-5 text-blue-600" />}>
+                <div className="text-center py-12 text-slate-400">
+                  <IconFileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
                   Los asientos contables se mostrarán aquí
                 </div>
               </Card>

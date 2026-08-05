@@ -1,15 +1,16 @@
 import React from 'react';
 import { EvaluacionFraude, ReglaFraudeDetalle } from '@/types/fraud';
 import { Card, Badge } from '@/components/ui';
+import { ProgressBar } from '@tremor/react';
 import {
-  Shield,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Info,
-} from 'lucide-react';
+  IconShield,
+  IconTrendingUp,
+  IconTrendingDown,
+  IconCheck,
+  IconX,
+  IconAlertTriangle,
+  IconInfoCircle,
+} from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 
 interface FraudScoreCardProps {
@@ -18,48 +19,41 @@ interface FraudScoreCardProps {
 }
 
 const getScoreColor = (score: number) => {
-  if (score >= 70) return { bg: 'bg-danger-500', text: 'text-danger-600', border: 'border-danger-200', light: 'bg-danger-50' };
-  if (score >= 30) return { bg: 'bg-warning-500', text: 'text-warning-600', border: 'border-warning-200', light: 'bg-warning-50' };
-  return { bg: 'bg-success-500', text: 'text-success-600', border: 'border-success-200', light: 'bg-success-50' };
+  if (score >= 70) return { bg: 'bg-red-500', text: 'text-red-600', border: 'border-red-200', light: 'bg-red-50' };
+  if (score >= 30) return { bg: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-200', light: 'bg-amber-50' };
+  return { bg: 'bg-green-500', text: 'text-green-600', border: 'border-green-200', light: 'bg-green-50' };
 };
 
 const getDecisionIcon = (decision: string) => {
   switch (decision) {
-    case 'APROBADO': return <CheckCircle className="w-5 h-5 text-success-500" />;
-    case 'RECHAZADO': return <XCircle className="w-5 h-5 text-danger-500" />;
-    case 'EN_REVISION': return <AlertTriangle className="w-5 h-5 text-warning-500" />;
-    default: return <Info className="w-5 h-5 text-surface-400" />;
+    case 'APROBADO': return <IconCheck className="w-5 h-5 text-green-600" />;
+    case 'RECHAZADO': return <IconX className="w-5 h-5 text-red-600" />;
+    case 'EN_REVISION': return <IconAlertTriangle className="w-5 h-5 text-amber-600" />;
+    default: return <IconInfoCircle className="w-5 h-5 text-slate-400" />;
   }
 };
 
 export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLoading }) => {
   if (isLoading || !evaluacion) {
     return (
-      <Card className="animate-pulse">
-        <div className="h-4 bg-surface-200 rounded w-3/4 mb-4"></div>
-        <div className="h-8 bg-surface-200 rounded w-1/2 mb-2"></div>
-        <div className="h-4 bg-surface-200 rounded w-full"></div>
-      </Card>
+      <div className="bg-slate-100 rounded-2xl p-6 animate-pulse h-64 border border-slate-200" />
     );
   }
 
   const colors = getScoreColor(evaluacion.score);
   const percentage = Math.min(evaluacion.score, 100);
-  const arcOffset = 180 - (percentage / 100) * 180;
 
   const reglasActivadas = evaluacion.reglasEvaluadas?.filter((r) => r.activada) ?? [];
   const reglasInactivas = evaluacion.reglasEvaluadas?.filter((r) => !r.activada) ?? [];
 
-  const gaugeColor = colors.bg.replace('bg-', 'stroke-').replace('-500', '');
-
   return (
     <Card
       title="Análisis de Fraude"
-      icon={<Shield className="w-5 h-5 text-primary-500" />}
+      icon={<IconShield className="w-5 h-5 text-blue-600" />}
       footer={
         <div className="flex items-center justify-between text-sm">
-          <span className="text-surface-500">Reglas activadas</span>
-          <span className="font-medium text-dark-500">
+          <span className="text-slate-500">Reglas activadas</span>
+          <span className="font-medium text-slate-700">
             {reglasActivadas.length} de {evaluacion.reglasEvaluadas?.length ?? 0}
           </span>
         </div>
@@ -68,8 +62,8 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-dark-500">Score de Riesgo</h3>
-            <p className="text-sm text-surface-500 mt-1">
+            <h3 className="text-lg font-semibold text-slate-800">Score de Riesgo</h3>
+            <p className="text-sm text-slate-500 mt-1">
               {evaluacion.score < 30 ? 'Transacción segura' :
                evaluacion.score < 70 ? 'Requiere revisión' :
                'Alto riesgo detectado'}
@@ -80,41 +74,20 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
             <span className={colors.text + ' font-bold text-xl'}>
               {evaluacion.score}
             </span>
-            <span className="text-surface-500">/ 100</span>
+            <span className="text-slate-500">/ 100</span>
           </div>
         </div>
 
-        <div className="relative">
-          <svg width="100%" height="120" viewBox="0 0 200 100" style={{ overflow: 'visible' }}>
-            <path
-              d="M 20 80 A 80 80 0 0 1 180 80"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="12"
-              strokeDasharray="200"
-              className="text-surface-200"
-              style={{ strokeDashoffset: 0 }}
-            />
-            <path
-              d="M 20 80 A 80 80 0 0 1 180 80"
-              fill="none"
-              strokeWidth="12"
-              strokeDasharray="200"
-              strokeDashoffset={200 - (percentage / 100) * 200}
-              className={colors.bg.replace('bg-', 'text-')}
-              strokeLinecap="round"
-              style={{ transition: 'stroke-dashoffset 0.8s ease-out' }}
-            />
-          </svg>
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-2">
-            <TrendingDown className="w-4 h-4 text-success-500" />
-            <span className="text-xs text-surface-500">Bajo riesgo (&lt;30)</span>
-            <span className="text-xs text-surface-300">—</span>
-            <TrendingUp className="w-4 h-4 text-warning-500" />
-            <span className="text-xs text-surface-500">Medio riesgo (30-70)</span>
-            <span className="text-xs text-surface-300">—</span>
-            <AlertTriangle className="w-4 h-4 text-danger-500" />
-            <span className="text-xs text-surface-500">Alto riesgo (&gt;70)</span>
+        <div>
+          <ProgressBar
+            value={percentage}
+            color={evaluacion.score >= 70 ? 'red' : evaluacion.score >= 30 ? 'amber' : 'green'}
+            className="mt-2"
+          />
+          <div className="flex justify-between mt-2 text-xs text-slate-500">
+            <span>Bajo riesgo (&lt;30)</span>
+            <span>Medio riesgo (30-70)</span>
+            <span>Alto riesgo (&gt;70)</span>
           </div>
         </div>
 
@@ -124,21 +97,21 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
         </Badge>
 
         <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
-          <h4 className="text-sm font-medium text-dark-500 mb-2">Reglas Activadas</h4>
+          <h4 className="text-sm font-medium text-slate-700 mb-2">Reglas Activadas</h4>
           {reglasActivadas.map((regla) => (
             <motion.div
               key={regla.codigo}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className={colors.light + ' rounded-lg p-3 border ' + colors.border}
+              className={colors.light + ' rounded-xl p-3 border ' + colors.border}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="font-medium text-dark-500 text-sm">
+                  <span className="font-medium text-slate-700 text-sm">
                     {regla.descripcion}
                   </span>
                   {regla.detalle && (
-                    <p className="text-xs text-surface-500 mt-1">{regla.detalle}</p>
+                    <p className="text-xs text-slate-500 mt-1">{regla.detalle}</p>
                   )}
                 </div>
                 <Badge variant="danger" size="sm">
@@ -153,10 +126,10 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
               key={regla.codigo}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-surface-50 rounded-lg p-3 border border-surface-200"
+              className="bg-slate-50 rounded-xl p-3 border border-slate-200"
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium text-surface-400 text-sm">
+                <span className="font-medium text-slate-400 text-sm">
                   {regla.descripcion}
                 </span>
                 <Badge variant="neutral" size="sm">

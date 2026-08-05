@@ -1,13 +1,12 @@
 import React from 'react';
 import { EvaluacionFraude } from '@/types/fraud';
-import { clsx } from '@/lib/utils';
-import { Card } from '@/components/ui';
+import { Card, Badge } from '@/components/ui';
 import {
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
-} from 'lucide-react';
+  IconAlertTriangle,
+  IconCheck,
+  IconX,
+} from '@tabler/icons-react';
+import { clsx } from '@/lib/utils';
 
 interface FraudReviewPanelProps {
   evaluaciones: EvaluacionFraude[];
@@ -26,7 +25,7 @@ export const FraudReviewPanel: React.FC<FraudReviewPanelProps> = ({
     return (
       <div className="space-y-3">
         {Array(5).fill(0).map((_, i) => (
-          <div key={i} className="bg-surface-100 rounded-lg p-4 animate-pulse h-24 border border-surface-200"></div>
+          <div key={i} className="bg-slate-100 rounded-lg p-4 animate-pulse h-24 border border-slate-200" />
         ))}
       </div>
     );
@@ -36,17 +35,17 @@ export const FraudReviewPanel: React.FC<FraudReviewPanelProps> = ({
     <div className="space-y-3">
       {evaluaciones.map((evaluacion, index) => {
         const scoreColor = evaluacion.score >= 70
-          ? 'text-danger-600 bg-danger-50 border-danger-200'
+          ? 'text-red-600 bg-red-50 border-red-200'
           : evaluacion.score >= 30
-          ? 'text-warning-600 bg-warning-50 border-warning-200'
-          : 'text-success-600 bg-success-50 border-success-200';
+          ? 'text-amber-600 bg-amber-50 border-amber-200'
+          : 'text-green-600 bg-green-50 border-green-200';
 
         return (
-          <Card key={evaluacion.id} className="p-4 border border-surface-200">
+          <Card key={evaluacion.id} className="p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
-                <AlertTriangle className="w-4 h-4 text-surface-400" />
-                <span className="font-medium text-dark-500">
+                <IconAlertTriangle className="w-4 h-4 text-slate-400" />
+                <span className="font-medium text-slate-800">
                   Trace: {evaluacion.traceId}
                 </span>
               </div>
@@ -60,9 +59,9 @@ export const FraudReviewPanel: React.FC<FraudReviewPanelProps> = ({
 
             <span className={clsx(
               'px-2 py-1 rounded-full text-xs font-medium',
-              evaluacion.decision === 'APROBADO' ? 'bg-success-100 text-success-700 border border-success-200' :
-              evaluacion.decision === 'RECHAZADO' ? 'bg-danger-100 text-danger-700 border border-danger-200' :
-              'bg-warning-100 text-warning-700 border border-warning-200'
+              evaluacion.decision === 'APROBADO' ? 'bg-green-100 text-green-700 border border-green-200' :
+              evaluacion.decision === 'RECHAZADO' ? 'bg-red-100 text-red-700 border border-red-200' :
+              'bg-amber-100 text-amber-700 border border-amber-200'
             )}>
               {evaluacion.decision}
             </span>
@@ -71,7 +70,7 @@ export const FraudReviewPanel: React.FC<FraudReviewPanelProps> = ({
               {evaluacion.reglasEvaluadas
                 ?.filter((r) => r.activada)
                 .map((regla) => (
-                  <div key={regla.codigo} className="text-xs text-surface-500">
+                  <div key={regla.codigo} className="text-xs text-slate-500">
                     ✓ {regla.descripcion}: +{regla.pesoAsignado} pts
                   </div>
                 ))}
@@ -81,13 +80,13 @@ export const FraudReviewPanel: React.FC<FraudReviewPanelProps> = ({
               <div className="flex space-x-2 mt-3">
                 <button
                   onClick={() => onAprobar?.(evaluacion.id)}
-                  className="px-3 py-1.5 bg-success-500 text-white rounded-lg text-sm hover:bg-success-600 transition-colors focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-1"
+                  className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1"
                 >
                   Aprobar
                 </button>
                 <button
                   onClick={() => onRechazar?.(evaluacion.id)}
-                  className="px-3 py-1.5 bg-danger-500 text-white rounded-lg text-sm hover:bg-danger-600 transition-colors focus:outline-none focus:ring-2 focus:ring-danger-500 focus:ring-offset-1"
+                  className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
                 >
                   Rechazar
                 </button>

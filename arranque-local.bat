@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 REM ===== FinCore Local Startup Script =====
-REM Redis y Kafka deben estar corriendo en Docker antes de ejecutar este script
+REM Requiere: Docker Desktop corriendo con docker-compose.yml
 REM Los logs se guardan en cada directorio de microservicio: <service>\logs\
 
 REM Crear directorios de logs
@@ -14,6 +14,7 @@ for %%S in (
     if not exist "%%S\logs" mkdir "%%S\logs"
 )
 
+REM Cargar variables de entorno
 set EUREKA_URL=http://localhost:8761/eureka/
 set KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 set REDIS_HOST=localhost
@@ -22,6 +23,7 @@ set REDIS_PASSWORD=redis_fincore_2026
 set JWT_SECRET=fincore_jwt_hs512_secret_minimo_64_caracteres_2026_abel_gomez_banking
 set POSTGRES_USER=fincore
 set POSTGRES_PASSWORD=fincore123
+set POSTGRES_URL=jdbc:postgresql://localhost:5432/fincore
 set DB_AUTH=fincore_auth
 set DB_CUSTOMERS=fincore_customers
 set DB_ACCOUNTS=fincore_accounts
@@ -41,6 +43,11 @@ set FRONTEND_URL=http://localhost:5173
 set SMTP_FROM=noreply@fincore.banking
 
 set COMMON_ARGS=--spring.flyway.enabled=false --spring.jpa.hibernate.ddl-auto=update --grpc.security.auth.enabled=false
+
+echo ========================================
+echo   FinCore - Iniciando Microservicios
+echo ========================================
+echo.
 
 echo [1/12] Eureka Server (8761) iniciando...
 start /b cmd /c "cd /d eureka-server && java -jar target/eureka-server-1.0.0.jar %COMMON_ARGS% --server.port=8761 > logs/eureka.log 2>&1"
@@ -81,10 +88,17 @@ echo [12/12] Batch Service (8094) iniciando...
 start /b cmd /c "cd /d batch-service && java -jar target/batch-service-1.0.0.jar %COMMON_ARGS% --server.port=8094 > logs/batch-service.log 2>&1"
 
 echo.
-echo Todos los microservicios han sido iniciados.
-echo Logs en: <servicio>\logs\*.log
+echo ========================================
+echo   Todos los microservicios han sido iniciados.
+echo ========================================
+echo.
+echo Logs en: ^<servicio^>\logs\*.log
+echo.
 echo Esperando 60 segundos para que los servicios se registren en Eureka...
 timeout /t 60 /nobreak >nul
 echo.
 echo Verifique puertos: netstat -an ^| findstr LISTENING
 echo Revise logs: type eureka-server\logs\eureka.log ^| more
+echo.
+echo Frontend: cd frontend && npm run dev
+echo.

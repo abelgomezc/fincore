@@ -13,6 +13,7 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   tokenExpiresAt: number | null;
+  darkMode: boolean;
 }
 
 interface AuthActions {
@@ -21,20 +22,22 @@ interface AuthActions {
   refreshAccessToken: () => Promise<void>;
   clearError: () => void;
   checkAuth: () => boolean;
+  toggleDarkMode: () => void;
 }
 
 export const useAuthStore = create<AuthState & AuthActions>()(
   persist(
-    (set, get) => ({
-      user: null,
-      accessToken: null,
-      refreshTokenValue: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-      tokenExpiresAt: null,
+  (set, get) => ({
+    user: null,
+    accessToken: null,
+    refreshTokenValue: null,
+    isAuthenticated: false,
+    isLoading: false,
+    error: null,
+    tokenExpiresAt: null,
+    darkMode: true,
 
-      login: async (username: string, password: string) => {
+    login: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
           const response: AuthResponse = await authApi.login({ username, password });
@@ -107,6 +110,16 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         if (!token || !expiresAt) return false;
         return Date.now() < expiresAt;
       },
+
+      toggleDarkMode: () => {
+        const newDarkMode = !get().darkMode;
+        set({ darkMode: newDarkMode });
+        if (newDarkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      },
     }),
     {
       name: 'fincore-auth-storage',
@@ -116,6 +129,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
         tokenExpiresAt: state.tokenExpiresAt,
+        darkMode: state.darkMode,
       }),
     }
   )

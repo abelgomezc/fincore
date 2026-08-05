@@ -1,413 +1,122 @@
-# ===================================================================
-# FinCore — Docker Compose
-# © 2026 Abel Gomez. Todos los derechos reservados.
-# ===================================================================
+version: '3.8'
 
 services:
-  # =================================================================
   # PostgreSQL
-  # =================================================================
   postgres:
     image: postgres:16-alpine
-    container_name: fincore_postgres
-    restart: unless-stopped
+    container_name: fincore-postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: fincore
+      POSTGRES_PASSWORD: fincore123
+      POSTGRES_DB: fincore
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
-      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
-      - ./scripts/seed-data.sql:/docker-entrypoint-initdb.d/seed-data.sql:ro
+      - fincore-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U fincore"]
+      interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - fincore-network
 
-  # =================================================================
   # Redis
-  # =================================================================
   redis:
     image: redis:7-alpine
-    container_name: fincore_redis
-    restart: unless-stopped
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    container_name: fincore-redis
+    command: redis-server --requirepass redis_fincore_2026 --appendonly yes
     ports:
-      - "${REDIS_PORT}:6379"
+      - "6379:6379"
     volumes:
-      - redis_data:/data
+      - fincore-redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 10s
+      test: ["CMD", "redis-cli", "-a", "redis_fincore_2026", "ping"]
+      interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - fincore-network
 
-  # =================================================================
-  # Kafka + Zookeeper
-  # =================================================================
+  # Zookeeper
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.1
-    container_name: fincore_zookeeper
-    restart: unless-stopped
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: fincore-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-
-  kafka:
-    image: confluentinc/cp-kafka:7.6.1
-    container_name: fincore_kafka
-    restart: unless-stopped
-    depends_on:
-      - zookeeper
     ports:
-      - "${KAFKA_PORT}:9092"
+      - "2181:2181"
+    volumes:
+      - fincore-zookeeper-data:/var/lib/zookeeper/data
+      - fincore-zookeeper-log:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD-SHELL", "echo srvr | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fincore-network
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: fincore-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: ${KAFKA_ZOOKEEPER_CONNECT}
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ZOOKEEPER_CONNECT: fincore-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://fincore-kafka:29092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 1
+    ports:
+      - "9092:9092"
+    volumes:
+      - fincore-kafka-data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "bash", "-c", "echo ruok | nc -w 1 localhost 9092 || exit 1"]
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
       interval: 15s
       timeout: 10s
-      retries: 6
-
-  # =================================================================
-  # Eureka Server (Service Discovery)
-  # =================================================================
-  eureka-server:
-    container_name: fincore_eureka
-    build:
-      context: ./eureka-server
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "8761:8761"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_AUTH}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      retries: 10
     networks:
-      - fincore-net
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - fincore-network
 
-  # =================================================================
-  # API Gateway
-  # =================================================================
-  api-gateway:
-    container_name: fincore_gateway
-    build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
-    restart: unless-stopped
+  # Kafka UI (opcional - para monitoreo)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: fincore-kafka-ui
     depends_on:
-      - eureka-server
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: FinCore
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: fincore-kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: fincore-zookeeper:2181
     ports:
       - "8080:8080"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
     networks:
-      - fincore-net
-
-  # =================================================================
-  # Auth Service
-  # =================================================================
-  auth-service:
-    container_name: fincore_auth
-    build:
-      context: ./auth-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-    ports:
-      - "8081:8081"
-      - "9081:9081"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_AUTH}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      GRPC_SERVER_PORT: 9081
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Customer Service
-  # =================================================================
-  customer-service:
-    container_name: fincore_customer
-    build:
-      context: ./customer-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-    ports:
-      - "8082:8082"
-      - "9082:9082"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_CUSTOMERS}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      GRPC_SERVER_PORT: 9082
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Account Service
-  # =================================================================
-  account-service:
-    container_name: fincore_account
-    build:
-      context: ./account-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-    ports:
-      - "8083:8083"
-      - "9083:9083"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_ACCOUNTS}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      GRPC_SERVER_PORT: 9083
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Ledger Service
-  # =================================================================
-  ledger-service:
-    container_name: fincore_ledger
-    build:
-      context: ./ledger-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-    ports:
-      - "8084:8084"
-      - "9084:9084"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_LEDGER}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      GRPC_SERVER_PORT: 9084
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Transfer Service
-  # =================================================================
-  transfer-service:
-    container_name: fincore_transfer
-    build:
-      context: ./transfer-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-      - kafka
-    ports:
-      - "8085:8085"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_TRANSFERS}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      BANKING_TRANSFER_LIMIT_DAILY: ${DAILY_LIMIT}
-      BANKING_TRANSFER_LIMIT_PER_TRANSACTION: ${TX_LIMIT}
-      BANKING_TRANSFER_LIMIT_MONTHLY: ${MONTHLY_LIMIT}
-      SAGA_TIMEOUT: ${SAGA_TIMEOUT}
-      SAGA_MAX_RETRIES: ${SAGA_MAX_RETRIES}
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Fraud Service
-  # =================================================================
-  fraud-service:
-    container_name: fincore_fraud
-    build:
-      context: ./fraud-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-      - kafka
-    ports:
-      - "8090:8090"
-      - "9086:9086"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_FRAUD}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      FRAUD_SCORE_APPROVE: ${FRAUD_SCORE_APPROVE}
-      FRAUD_SCORE_REVIEW: ${FRAUD_SCORE_REVIEW}
-      FRAUD_SCORE_REJECT: ${FRAUD_SCORE_REJECT}
-      FRAUD_VELOCITY_MAX_TX_PER_HOUR: ${FRAUD_VELOCITY_MAX_TX_PER_HOUR}
-      FRAUD_VELOCITY_WINDOW_MINUTES: ${FRAUD_VELOCITY_WINDOW_MINUTES}
-      GRPC_SERVER_PORT: 9086
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Notification Service
-  # =================================================================
-  notification-service:
-    container_name: fincore_notification
-    build:
-      context: ./notification-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-      - kafka
-    ports:
-      - "8092:8092"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NOTIFICATION}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_FROM: ${SMTP_FROM}
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Audit Service
-  # =================================================================
-  audit-service:
-    container_name: fincore_audit
-    build:
-      context: ./audit-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-      - kafka
-    ports:
-      - "8091:8091"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_AUDIT}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Backoffice Service
-  # =================================================================
-  backoffice-service:
-    container_name: fincore_backoffice
-    build:
-      context: ./backoffice-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-    ports:
-      - "8093:8093"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_BACKOFFICE}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Batch Service
-  # =================================================================
-  batch-service:
-    container_name: fincore_batch
-    build:
-      context: ./batch-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-      - postgres
-    ports:
-      - "8094:8094"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_BATCH}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-    networks:
-      - fincore-net
-
-  # =================================================================
-  # Frontend React (Vite)
-  # =================================================================
-  frontend:
-    container_name: fincore_frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - api-gateway
-    ports:
-      - "5173:80"
-    environment:
-      VITE_API_BASE_URL: /api
-      VITE_WS_URL: ws://localhost:8080
-    networks:
-      - fincore-net
+      - fincore-network
 
 volumes:
-  pg_data:
-  redis_data:
+  fincore-postgres-data:
+    name: fincore-postgres-data
+  fincore-redis-data:
+    name: fincore-redis-data
+  fincore-zookeeper-data:
+    name: fincore-zookeeper-data
+  fincore-zookeeper-log:
+    name: fincore-zookeeper-log
+  fincore-kafka-data:
+    name: fincore-kafka-data
 
 networks:
-  fincore-net:
+  fincore-network:
+    name: fincore-network
     driver: bridge
