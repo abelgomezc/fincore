@@ -43,42 +43,42 @@ set SMTP_FROM=noreply@fincore.banking
 set COMMON_ARGS=--spring.flyway.enabled=false --spring.jpa.hibernate.ddl-auto=update --grpc.security.auth.enabled=false
 
 echo [1/12] Eureka Server (8761) iniciando...
-start /b cmd /c "java -jar eureka-server/target/eureka-server-1.0.0.jar %COMMON_ARGS% --server.port=8761 > eureka-server/logs/eureka.log 2>&1"
+start /b cmd /c "cd /d eureka-server && java -jar target/eureka-server-1.0.0.jar %COMMON_ARGS% --server.port=8761 > logs/eureka.log 2>&1"
 
 timeout /t 25 /nobreak >nul
 
 echo [2/12] API Gateway (8080) iniciando...
-start /b cmd /c "java -jar api-gateway/target/api-gateway-1.0.0.jar %COMMON_ARGS% --server.port=8080 > api-gateway/logs/api-gateway.log 2>&1"
+start /b cmd /c "cd /d api-gateway && java -jar target/api-gateway-1.0.0.jar %COMMON_ARGS% --server.port=8080 > logs/api-gateway.log 2>&1"
 
 echo [3/12] Auth Service (8081) iniciando...
-start /b cmd /c "java -jar auth-service/target/auth-service-1.0.0.jar %COMMON_ARGS% --server.port=8081 > auth-service/logs/auth-service.log 2>&1"
+start /b cmd /c "cd /d auth-service && java -jar target/auth-service-1.0.0.jar %COMMON_ARGS% --server.port=8081 > logs/auth-service.log 2>&1"
 
 echo [4/12] Customer Service (8082) iniciando...
-start /b cmd /c "java -jar customer-service/target/customer-service-1.0.0.jar %COMMON_ARGS% --server.port=8082 > customer-service/logs/customer-service.log 2>&1"
+start /b cmd /c "cd /d customer-service && java -jar target/customer-service-1.0.0.jar %COMMON_ARGS% --server.port=8082 > logs/customer-service.log 2>&1"
 
 echo [5/12] Account Service (8083) iniciando...
-start /b cmd /c "java -jar account-service/target/account-service-1.0.0.jar %COMMON_ARGS% --server.port=8083 > account-service/logs/account-service.log 2>&1"
+start /b cmd /c "cd /d account-service && java -jar target/account-service-1.0.0.jar %COMMON_ARGS% --server.port=8083 > logs/account-service.log 2>&1"
 
 echo [6/12] Ledger Service (8084) iniciando...
-start /b cmd /c "java -jar ledger-service/target/ledger-service-1.0.0.jar %COMMON_ARGS% --server.port=8084 > ledger-service/logs/ledger-service.log 2>&1"
+start /b cmd /c "cd /d ledger-service && java -jar target/ledger-service-1.0.0.jar %COMMON_ARGS% --server.port=8084 > logs/ledger-service.log 2>&1"
 
 echo [7/12] Transfer Service (8085) iniciando...
-start /b cmd /c "java -jar transfer-service/target/transfer-service-1.0.0.jar %COMMON_ARGS% --server.port=8085 > transfer-service/logs/transfer-service.log 2>&1"
+start /b cmd /c "cd /d transfer-service && java -jar target/transfer-service-1.0.0.jar %COMMON_ARGS% --server.port=8085 > logs/transfer-service.log 2>&1"
 
 echo [8/12] Fraud Service (8090) iniciando...
-start /b cmd /c "java -jar fraud-service/target/fraud-service-1.0.0.jar %COMMON_ARGS% --server.port=8090 > fraud-service/logs/fraud-service.log 2>&1"
+start /b cmd /c "cd /d fraud-service && java -jar target/fraud-service-1.0.0.jar %COMMON_ARGS% --server.port=8090 > logs/fraud-service.log 2>&1"
 
 echo [9/12] Audit Service (8091) iniciando...
-start /b cmd /c "java -jar audit-service/target/audit-service-1.0.0.jar %COMMON_ARGS% --server.port=8091 > audit-service/logs/audit-service.log 2>&1"
+start /b cmd /c "cd /d audit-service && java -jar target/audit-service-1.0.0.jar %COMMON_ARGS% --server.port=8091 > logs/audit-service.log 2>&1"
 
 echo [10/12] Notification Service (8092) iniciando...
-start /b cmd /c "java -jar notification-service/target/notification-service-1.0.0.jar %COMMON_ARGS% --server.port=8092 > notification-service/logs/notification-service.log 2>&1"
+start /b cmd /c "cd /d notification-service && java -jar target/notification-service-1.0.0.jar %COMMON_ARGS% --server.port=8092 > logs/notification-service.log 2>&1"
 
 echo [11/12] Backoffice Service (8093) iniciando...
-start /b cmd /c "java -jar backoffice-service/target/backoffice-service-1.0.0.jar %COMMON_ARGS% --server.port=8093 > backoffice-service/logs/backoffice-service.log 2>&1"
+start /b cmd /c "cd /d backoffice-service && java -jar target/backoffice-service-1.0.0.jar %COMMON_ARGS% --server.port=8093 > logs/backoffice-service.log 2>&1"
 
 echo [12/12] Batch Service (8094) iniciando...
-start /b cmd /c "java -jar batch-service/target/batch-service-1.0.0.jar %COMMON_ARGS% --server.port=8094 > batch-service/logs/batch-service.log 2>&1"
+start /b cmd /c "cd /d batch-service && java -jar target/batch-service-1.0.0.jar %COMMON_ARGS% --server.port=8094 > logs/batch-service.log 2>&1"
 
 echo.
 echo Todos los microservicios han sido iniciados.

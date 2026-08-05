@@ -33,6 +33,7 @@ Desktop.ini
 *.log
 logs/
 log/
+*.log.txt
 
 # Database
 *.db
