@@ -10,10 +10,12 @@
 -- ===================================================================
 -- VERIFICACIONES KYC INICIALES
 -- ===================================================================
-INSERT INTO kyc_verificaciones (id_cliente, estado, fecha_verificacion, verificado_por, observaciones)
-VALUES
-(1, 'APROBADO', '2024-01-16 09:30:00', 'sistema', 'Verificación automática completada — cédula vigente'),
-(2, 'APROBADO', '2024-01-16 09:45:00', 'sistema', 'Verificación automática completada — cédula vigente');
+-- NOTA: Los clientes (id_cliente=1,2) se insertan en seed-data.sql
+-- Esta migración no puede referenciarlos directamente por FK.
+-- Los datos KYC se cargan posteriormente con seed-data.sql.
+-- INSERT INTO kyc_verificaciones (id_cliente, estado, fecha_verificacion, verificado_por, observaciones) VALUES
+-- (1, 'APROBADO', '2024-01-16 09:30:00', 'sistema', 'Verificación automática completada — cédula vigente'),
+-- (2, 'APROBADO', '2024-01-16 09:45:00', 'sistema', 'Verificación automática completada — cédula vigente');
 
 -- Nota: los clientes, documentos, direcciones y contactos de emergencia
 -- se insertan mediante los microservicios al momento del registro.

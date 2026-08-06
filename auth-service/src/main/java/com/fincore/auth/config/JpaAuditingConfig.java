@@ -28,7 +28,9 @@ public class JpaAuditingConfig {
             try {
                 org.springframework.security.core.context.SecurityContext context =
                         org.springframework.security.core.context.SecurityContextHolder.getContext();
-                if (context != null && context.getAuthentication() != null) {
+                if (context != null && context.getAuthentication() != null
+                        && context.getAuthentication().isAuthenticated()
+                        && !"anonymousUser".equals(context.getAuthentication().getName())) {
                     return Optional.of(context.getAuthentication().getName());
                 }
             } catch (Exception e) {

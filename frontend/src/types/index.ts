@@ -9,7 +9,7 @@ export interface Usuario {
 }
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -17,7 +17,13 @@ export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
-  usuario: Usuario;
+  userId: number;
+  email: string;
+  nombreCompleto: string;
+  rol: string;
+  estado: string;
+  sessionId: string;
+  deviceId: string;
 }
 
 export interface JwtPayload {

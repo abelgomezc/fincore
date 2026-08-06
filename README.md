@@ -122,6 +122,18 @@ npm run dev
 
 Frontend disponible en: http://localhost:5173
 
+### 7. Acceder al sistema
+
+Usar cualquiera de estas credenciales:
+
+| Usuario | Contraseña | Rol |
+|---------|-----------|-----|
+| `abel.gomez@fincore.com` | `password123` | CLIENTE |
+| `maria.lopez@fincore.com` | `password123` | CLIENTE |
+| `supervisor@fincore.com` | `password123` | SUPERVISOR |
+| `auditor@fincore.com` | `password123` | AUDITOR |
+| `admin@fincore.com` | `password123` | ADMIN |
+
 ## 👥 Roles de Usuario
 
 El sistema maneja 5 roles predefinidos:
@@ -133,18 +145,6 @@ El sistema maneja 5 roles predefinidos:
 | **SUPERVISOR** | Supervisor de operaciones | Revisar/revertir transferencias, bloquear/crear cuentas, fraude, backoffice |
 | **AUDITOR** | Auditor del sistema | Consultar auditoría, acceso backoffice |
 | **ADMIN** | Administrador | Acceso total a todos los recursos |
-
-## 🔐 Credenciales de Demo
-
-| Usuario | Contraseña | Rol |
-|---------|-----------|-----|
-| `abel.gomez@fincore.com` | `password123` | CLIENTE |
-| `maria.lopez@fincore.com` | `password123` | CLIENTE |
-| `supervisor@fincore.com` | `password123` | SUPERVISOR |
-| `auditor@fincore.com` | `password123` | AUDITOR |
-| `admin@fincore.com` | `password123` | ADMIN |
-
-> ⚠️ **Importante**: Estas credenciales son solo para desarrollo. En producción, cambiar las contraseñas y usar variables de entorno.
 
 ## 📋 Características Principales
 

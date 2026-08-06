@@ -25,7 +25,10 @@ CREATE TABLE usuarios (
     ultimo_intento_fallido TIMESTAMP,
     fecha_bloqueo TIMESTAMP,
     fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW(),
-    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT NOW()
+    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT NOW(),
+    creado_por VARCHAR(100),
+    actualizado_por VARCHAR(100),
+    version BIGINT NOT NULL DEFAULT 0
 );
 
 -- ===================================================================
@@ -37,11 +40,15 @@ CREATE TABLE refresh_tokens (
     id_usuario BIGINT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     fecha_expiracion TIMESTAMP NOT NULL,
     fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW(),
+    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT NOW(),
     fecha_revocacion TIMESTAMP,
     es_revocado BOOLEAN NOT NULL DEFAULT FALSE,
     device_id VARCHAR(255),
     ip_origen VARCHAR(45),
-    user_agent TEXT
+    user_agent TEXT,
+    creado_por VARCHAR(100),
+    actualizado_por VARCHAR(100),
+    version BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE INDEX idx_refresh_tokens_usuario ON refresh_tokens(id_usuario);
@@ -58,9 +65,14 @@ CREATE TABLE sesiones_activas (
     ip_origen VARCHAR(45),
     user_agent TEXT,
     fecha_inicio TIMESTAMP NOT NULL DEFAULT NOW(),
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW(),
     fecha_ultima_actividad TIMESTAMP NOT NULL DEFAULT NOW(),
     fecha_expiracion TIMESTAMP NOT NULL,
-    es_activa BOOLEAN NOT NULL DEFAULT TRUE
+    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT NOW(),
+    es_activa BOOLEAN NOT NULL DEFAULT TRUE,
+    creado_por VARCHAR(100),
+    actualizado_por VARCHAR(100),
+    version BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE INDEX idx_sesiones_usuario ON sesiones_activas(id_usuario);

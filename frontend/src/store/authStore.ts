@@ -37,17 +37,26 @@ export const useAuthStore = create<AuthState & AuthActions>()(
     tokenExpiresAt: null,
     darkMode: true,
 
-    login: async (username: string, password: string) => {
+     login: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
-          const response: AuthResponse = await authApi.login({ username, password });
+          const response: AuthResponse = await authApi.login({ email: username, password });
           const tokenPayload = jwtDecode<JwtPayload>(response.accessToken);
 
           setToken(response.accessToken);
           setRefreshToken(response.refreshToken);
 
+          const usuario: Usuario = {
+            id: String(response.userId),
+            username: response.email,
+            nombreCompleto: response.nombreCompleto,
+            email: response.email,
+            roles: [response.rol],
+            esActivo: response.estado === 'ACTIVO',
+          };
+
           set({
-            user: response.usuario,
+            user: usuario,
             accessToken: response.accessToken,
             refreshTokenValue: response.refreshToken,
             isAuthenticated: true,

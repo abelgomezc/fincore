@@ -56,6 +56,6 @@ public abstract class BaseEntity {
     private String actualizadoPor;
 
     @Version
-    @Column(name = "version")
-    private Long version;
+    @Column(name = "version", nullable = false)
+    private long version;
 }

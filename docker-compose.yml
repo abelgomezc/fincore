@@ -1,27 +1,6 @@
 version: '3.8'
 
 services:
-  # PostgreSQL
-  postgres:
-    image: postgres:16-alpine
-    container_name: fincore-postgres
-    environment:
-      POSTGRES_USER: fincore
-      POSTGRES_PASSWORD: fincore123
-      POSTGRES_DB: fincore
-    ports:
-      - "5432:5432"
-    volumes:
-      - fincore-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fincore"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - fincore-network
-
-  # Redis
   redis:
     image: redis:7-alpine
     container_name: fincore-redis
@@ -38,7 +17,6 @@ services:
     networks:
       - fincore-network
 
-  # Zookeeper
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: fincore-zookeeper
@@ -58,7 +36,6 @@ services:
     networks:
       - fincore-network
 
-  # Kafka
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: fincore-kafka
@@ -70,6 +47,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: fincore-zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://fincore-kafka:29092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -88,7 +66,6 @@ services:
     networks:
       - fincore-network
 
-  # Kafka UI (opcional - para monitoreo)
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: fincore-kafka-ui
@@ -100,13 +77,11 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: fincore-kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: fincore-zookeeper:2181
     ports:
-      - "8080:8080"
+      - "8099:8080"
     networks:
       - fincore-network
 
 volumes:
-  fincore-postgres-data:
-    name: fincore-postgres-data
   fincore-redis-data:
     name: fincore-redis-data
   fincore-zookeeper-data:

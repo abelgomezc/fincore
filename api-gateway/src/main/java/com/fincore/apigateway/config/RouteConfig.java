@@ -34,7 +34,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://AUTH-SERVICE"))
+                        .uri("http://localhost:8081"))
 
                 .route("customer-service", r -> r
                         .path("/api/clientes/**")
@@ -43,7 +43,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://CUSTOMER-SERVICE"))
+                        .uri("http://localhost:8082"))
 
                 .route("account-service", r -> r
                         .path("/api/cuentas/**", "/api/saldos/**", "/api/beneficiarios/**")
@@ -52,7 +52,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://ACCOUNT-SERVICE"))
+                        .uri("http://localhost:8083"))
 
                 .route("ledger-service", r -> r
                         .path("/api/ledger/**")
@@ -61,7 +61,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://LEDGER-SERVICE"))
+                        .uri("http://localhost:8084"))
 
                 .route("transfer-service", r -> r
                         .path("/api/transferencias/**", "/ws/**")
@@ -70,7 +70,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://TRANSFER-SERVICE"))
+                        .uri("http://localhost:8092"))
 
                 .route("fraud-service", r -> r
                         .path("/api/fraude/**")
@@ -79,7 +79,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://FRAUD-SERVICE"))
+                        .uri("http://localhost:8090"))
 
                 .route("notification-service", r -> r
                         .path("/api/notificaciones/**")
@@ -88,7 +88,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://NOTIFICATION-SERVICE"))
+                        .uri("http://localhost:8085"))
 
                 .route("audit-service", r -> r
                         .path("/api/audit/**")
@@ -97,7 +97,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://AUDIT-SERVICE"))
+                        .uri("http://localhost:8091"))
 
                 .route("batch-service", r -> r
                         .path("/api/batch/**")
@@ -106,7 +106,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://BATCH-SERVICE"))
+                        .uri("http://localhost:8094"))
 
                 .route("backoffice-service", r -> r
                         .path("/api/backoffice/**")
@@ -115,7 +115,7 @@ public class RouteConfig {
                                 .filter(jwtFilter)
                                 .filter(new RateLimitingFilter(rateLimitPerMinute))
                         )
-                        .uri("lb://BACKOFFICE-SERVICE"))
+                        .uri("http://localhost:8093"))
 
                 .build();
     }

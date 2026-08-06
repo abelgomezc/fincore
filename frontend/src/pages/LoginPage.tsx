@@ -175,14 +175,6 @@ export const LoginPage = () => {
           <span>Conexión segura SSL · Sesión cifrada AES-256</span>
         </div>
 
-        <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-200">
-          <p className="text-xs font-medium text-blue-900 mb-1">Credenciales de prueba:</p>
-          <p className="text-xs text-blue-700">cliente / password123</p>
-          <p className="text-xs text-blue-700">supervisor / password123</p>
-          <p className="text-xs text-blue-700">auditor / password123</p>
-          <p className="text-xs text-blue-700">admin / password123</p>
-        </div>
-
         <div className="mt-4 flex items-center justify-center">
           <button
             type="button"

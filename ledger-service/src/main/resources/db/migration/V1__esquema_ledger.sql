@@ -20,7 +20,8 @@ CREATE TABLE plan_cuentas (
     codigo_padre VARCHAR(10),
     es_hoja BOOLEAN NOT NULL DEFAULT TRUE,
     es_activa BOOLEAN NOT NULL DEFAULT TRUE,
-    fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW()
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW(),
+    creado_por VARCHAR(255) NOT NULL DEFAULT 'system'
 );
 
 ALTER TABLE plan_cuentas ADD CONSTRAINT chk_tipo_cuenta_contable

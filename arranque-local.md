@@ -290,9 +290,19 @@ npm run dev
 
 Acceder a `http://localhost:5173`
 
+## 7. Credenciales de acceso
+
+| Usuario | Contraseña | Rol |
+|---------|-----------|-----|
+| `abel.gomez@fincore.com` | `password123` | CLIENTE |
+| `maria.lopez@fincore.com` | `password123` | CLIENTE |
+| `supervisor@fincore.com` | `password123` | SUPERVISOR |
+| `auditor@fincore.com` | `password123` | AUDITOR |
+| `admin@fincore.com` | `password123` | ADMIN |
+
 ---
 
-## 7. Health checks
+## 8. Health checks
 
 | Servicio | URL |
 |---|---|
