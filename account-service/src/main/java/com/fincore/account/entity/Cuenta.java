@@ -37,7 +37,7 @@ public class Cuenta extends BaseEntity {
     @Column(name = "id_cliente", nullable = false)
     private Long idCliente;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_tipo_cuenta", nullable = false)
     private TipoCuenta tipoCuenta;
 

@@ -21,6 +21,87 @@ fincore/
 └── frontend/                # Aplicación web (React + Vite + Tailwind)
 ```
 
+### Diagrama de conexiones
+
+```mermaid
+graph LR
+    subgraph Cliente
+        F[Frontend :5173]
+    end
+
+    subgraph Gateway
+        G[API Gateway :8080]
+    end
+
+    subgraph Servicios
+        AUTH[auth-service :8081]
+        CUST[customer-service :8082]
+        ACC[account-service :8083]
+        LED[ledger-service :8084]
+        TX[transfer-service :8085]
+        FRAUD[fraud-service :8090]
+        NOTIF[notification-service :8092]
+        AUDIT[audit-service :8091]
+        BACK[backoffice-service :8093]
+        BATCH[batch-service :8094]
+    end
+
+    subgraph Infraestructura
+        EUREKA[Eureka :8761]
+        KAFKA[Kafka :9092]
+        REDIS[Redis :6379]
+        PG[(PostgreSQL :5432)]
+    end
+
+    F --> G
+    G --> AUTH
+    G --> CUST
+    G --> ACC
+    G --> LED
+    G --> TX
+    G --> FRAUD
+    G --> NOTIF
+    G --> AUDIT
+    G --> BACK
+    G --> BATCH
+
+    AUTH --> EUREKA
+    CUST --> EUREKA
+    ACC --> EUREKA
+    LED --> EUREKA
+    TX --> EUREKA
+    FRAUD --> EUREKA
+    NOTIF --> EUREKA
+    AUDIT --> EUREKA
+    BACK --> EUREKA
+    BATCH --> EUREKA
+    G --> EUREKA
+
+    TX --> KAFKA
+    ACC --> KAFKA
+    LED --> KAFKA
+    FRAUD --> KAFKA
+    NOTIF --> KAFKA
+    AUDIT --> KAFKA
+
+    G --> REDIS
+    AUTH --> REDIS
+    ACC --> REDIS
+    FRAUD --> REDIS
+
+    ACC --> CUST
+
+    AUTH --> PG
+    CUST --> PG
+    ACC --> PG
+    LED --> PG
+    TX --> PG
+    FRAUD --> PG
+    AUDIT --> PG
+    BACK --> PG
+    BATCH --> PG
+```
+
 ## 🛠️ Stack Tecnológico
 
 ### Backend
@@ -58,6 +139,13 @@ cd fincore
 ```
 
 ### 2. Configurar base de datos
+
+El proyecto incluye **datos semilla automáticos** en `customer-service` y `account-service`. Al iniciar por primera vez, se cargan automáticamente:
+
+- 2 clientes de prueba (`abel.gomez@fincore.com`, `maria.lopez@fincore.com`)
+- 2 cuentas con saldos iniciales (`202600000001` → $1,000, `202600000002` → $500)
+
+No es necesario ejecutar `scripts/seed-data.sql` manualmente a menos que quieras resetear los datos.
 ```bash
 # Levantar PostgreSQL con Docker
 docker run -d \
@@ -134,6 +222,24 @@ Usar cualquiera de estas credenciales:
 | `auditor@fincore.com` | `password123` | AUDITOR |
 | `admin@fincore.com` | `password123` | ADMIN |
 
+## 🔄 Cambios Recientes
+
+### 2026-08-07 — Cuenta seleccionada persistente + preview de beneficiario
+
+- **Frontend**: La cuenta seleccionada ahora persiste en `sessionStorage` durante toda la sesión.
+- **Frontend**: El origen de transferencia se toma automáticamente de la cuenta seleccionada (solo lectura).
+- **Frontend**: En el formulario de transferencia, al escribir el número de cuenta destino y presionar `Enter`, se muestra un preview con nombre del propietario, identificación y tipo de cuenta.
+- **Frontend**: El dashboard auto-selecciona la primera cuenta disponible al iniciar sesión.
+- **Frontend**: Sidebar incluye selector de cuenta para cambiar la cuenta activa.
+- **Backend**: `CuentaResponse` ahora incluye `nombrePropietario` e `identificacionPropietario`.
+- **Backend**: `CuentaQueryServiceImpl` enriquece la respuesta consultando `customer-service` vía `RestTemplate`.
+- **Backend**: `account-service` expone endpoint público `/api/cuentas/numero/{numero}` para preview de cuenta.
+- **Backend**: `customer-service` expone endpoint público `/api/clientes/**` para consulta de datos básicos.
+- **Backend**: Se agregó `RestTemplateConfig` en `account-service` para comunicación inter-servicios.
+- **Backend**: Se agregó `SecurityConfig` en `account-service` y `customer-service` para rutas públicas.
+- **Backend**: Se agregó `DataInitializer` en `account-service` y `customer-service` para datos semilla.
+- **Backend**: Se corrigió flag `-parameters` en `fincore-parent/pom.xml` para binding de parámetros en controladores.
+
 ## 👥 Roles de Usuario
 
 El sistema maneja 5 roles predefinidos:
@@ -154,10 +260,13 @@ El sistema maneja 5 roles predefinidos:
 - ✅ **Contabilidad de doble partida** (asientos inmutables)
 - ✅ **Eventos Kafka** para comunicación asíncrona
 - ✅ **gRPC** para comunicación síncrona
+- ✅ **REST inter-servicios** para enriquecimiento de datos (`account-service` → `customer-service`)
 - ✅ **JWT** con refresh tokens
 - ✅ **WebSocket** para notificaciones en tiempo real
 - ✅ **Flyway** para migraciones de base de datos
+- ✅ **DataInitializer** para datos semilla automáticos
 - ✅ **Optimistic Locking** con `@Version`
+- ✅ **Endpoints públicos** para preview de cuenta y datos básicos de cliente
 
 ### Frontend
 - ✅ **Diseño bancario profesional** con Tailwind CSS
@@ -169,6 +278,10 @@ El sistema maneja 5 roles predefinidos:
 - ✅ **Responsive design** para móvil y desktop
 - ✅ **Loading skeletons** en todos los estados de carga
 - ✅ **Tablas expandibles** con animaciones
+- ✅ **Cuenta seleccionada persistente** en `sessionStorage` durante la sesión
+- ✅ **Selector de cuenta** en sidebar para cambiar la cuenta activa
+- ✅ **Origen de transferencia automático** desde la cuenta seleccionada (solo lectura)
+- ✅ **Preview de beneficiario** al escribir número de cuenta destino y presionar `Enter`
 
 ## 🗂️ Estructura de Logs
 
@@ -239,6 +352,21 @@ docker-compose down -v
 **Red:** `fincore-network` (bridge aislado)
 
 ### Levantar microservicios Java
+
+Para desarrollo local, cada microservicio se puede ejecutar individualmente con Maven:
+
+```bash
+# Orden recomendado
+mvn spring-boot:run -f eureka-server/pom.xml
+mvn spring-boot:run -f customer-service/pom.xml
+mvn spring-boot:run -f account-service/pom.xml
+mvn spring-boot:run -f auth-service/pom.xml
+mvn spring-boot:run -f api-gateway/pom.xml
+mvn spring-boot:run -f transfer-service/pom.xml
+# ... resto de servicios
+```
+
+> **Nota:** `account-service` y `customer-service` tienen rutas públicas para preview de cuenta (`/api/cuentas/numero/{numero}`) y datos básicos de cliente (`/api/clientes/**`). El resto de rutas requieren JWT válido.
 
 ## 📝 Licencia
 

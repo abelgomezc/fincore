@@ -42,13 +42,16 @@ export const DashboardPage: React.FC = () => {
     const cargarDatos = async () => {
       if (user?.id) {
         await fetchCuentas(user.id);
-        if (!selectedCuentaId && cuentas.length > 0) {
-          setSelectedCuenta(cuentas[0].id);
-        }
       }
     };
     cargarDatos();
-  }, [isAuthenticated, user?.id, fetchCuentas, fetchSaldo, fetchMovimientos, setSelectedCuenta, navigate]);
+  }, [isAuthenticated, user?.id, fetchCuentas, navigate]);
+
+  useEffect(() => {
+    if (!selectedCuentaId && cuentas.length > 0) {
+      setSelectedCuenta(cuentas[0].id);
+    }
+  }, [cuentas, selectedCuentaId, setSelectedCuenta]);
 
   useEffect(() => {
     if (selectedCuentaId) {

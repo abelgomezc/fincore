@@ -16,8 +16,12 @@ interface AccountActions {
   fetchSaldo: (idCuenta: number) => Promise<void>;
   fetchMovimientos: (idCuenta: number, page?: number) => Promise<void>;
   setSelectedCuenta: (idCuenta: number | null) => void;
+  getCuentaPorNumero: (numeroCuenta: string) => Promise<Cuenta | null>;
+  getCliente: (idCliente: number) => Promise<any>;
   clear: () => void;
 }
+
+const STORAGE_KEY = 'fincore-selected-cuenta-id';
 
 export const useAccountStore = create<AccountState & AccountActions>((set, get) => ({
   cuentas: [],
@@ -25,7 +29,14 @@ export const useAccountStore = create<AccountState & AccountActions>((set, get) 
   movimientos: [],
   isLoading: false,
   error: null,
-  selectedCuentaId: null,
+  selectedCuentaId: (() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      return stored ? Number(stored) : null;
+    } catch {
+      return null;
+    }
+  })(),
 
   fetchCuentas: async (idUsuario) => {
     set({ isLoading: true, error: null });
@@ -63,17 +74,51 @@ export const useAccountStore = create<AccountState & AccountActions>((set, get) 
 
   setSelectedCuenta: (idCuenta) => {
     set({ selectedCuentaId: idCuenta });
+    try {
+      if (idCuenta) {
+        sessionStorage.setItem(STORAGE_KEY, String(idCuenta));
+      } else {
+        sessionStorage.removeItem(STORAGE_KEY);
+      }
+    } catch {
+      // ignore storage errors
+    }
     if (idCuenta) {
       get().fetchSaldo(idCuenta);
       get().fetchMovimientos(idCuenta);
     }
   },
 
-  clear: () => set({
-    cuentas: [],
-    saldoActual: null,
-    movimientos: [],
-    error: null,
-    selectedCuentaId: null,
-  }),
+  getCuentaPorNumero: async (numeroCuenta) => {
+    try {
+      const cuenta = await accountApi.getCuentaPorNumero(numeroCuenta);
+      return cuenta;
+    } catch {
+      return null;
+    }
+  },
+
+  getCliente: async (idCliente) => {
+    try {
+      const cliente = await accountApi.getCliente(idCliente);
+      return cliente;
+    } catch {
+      return null;
+    }
+  },
+
+  clear: () => {
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    set({
+      cuentas: [],
+      saldoActual: null,
+      movimientos: [],
+      error: null,
+      selectedCuentaId: null,
+    });
+  },
 }));

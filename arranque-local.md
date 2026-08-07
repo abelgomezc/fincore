@@ -321,7 +321,18 @@ Acceder a `http://localhost:5173`
 
 ---
 
-## 8. Detener todo
+## 9. Datos semilla
+
+Al iniciar por primera vez, los siguientes servicios cargan datos de prueba automáticamente si sus tablas están vacías:
+
+- `customer-service`: 2 clientes (`abel.gomez@fincore.com`, `maria.lopez@fincore.com`)
+- `account-service`: 2 cuentas (`202600000001`, `202600000002`) con saldos iniciales
+
+Esto permite probar el flujo completo sin necesidad de ejecutar `scripts/seed-data.sql` manualmente.
+
+---
+
+## 10. Detener todo
 
 ```bash
 # Detener microservicios

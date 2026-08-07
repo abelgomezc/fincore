@@ -1,5 +1,7 @@
 package com.fincore.account.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fincore.account.dto.response.CuentaResponse;
 import com.fincore.account.dto.response.SaldoResponse;
 import com.fincore.account.entity.Cuenta;
@@ -12,27 +14,26 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Implementación del servicio de consultas de cuentas (CQRS — Query side).
- *
- * Usa caché Redis (TTL 300s) para consultas frecuentes de saldos.
- * El read model está optimizado para lecturas rápidas.
- *
- * © 2026 Abel Gomez. Todos los derechos reservados.
- */
 @Service
 @Slf4j
 @Transactional(readOnly = true)
 public class CuentaQueryServiceImpl implements CuentaQueryService {
 
     private final CuentaRepository cuentaRepository;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
-    public CuentaQueryServiceImpl(CuentaRepository cuentaRepository) {
+    public CuentaQueryServiceImpl(CuentaRepository cuentaRepository,
+                                  RestTemplate restTemplate,
+                                  ObjectMapper objectMapper) {
         this.cuentaRepository = cuentaRepository;
+        this.restTemplate = restTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -87,9 +88,6 @@ public class CuentaQueryServiceImpl implements CuentaQueryService {
     @Override
     public List<SaldoResponse> obtenerMovimientos(ObtenerMovimientosQuery query) {
         log.debug("Obteniendo movimientos para cuenta: {}", query.getIdCuenta());
-        // Los movimientos reales vienen del ledger-service.
-        // Aquí se retorna el snapshot de saldos históricos si existe.
-        // En una implementación completa, se consumiría del ledger via gRPC.
         Cuenta cuenta = cuentaRepository.findById(query.getIdCuenta())
                 .orElseThrow(() -> new IllegalArgumentException("Cuenta no encontrada: " + query.getIdCuenta()));
 
@@ -122,6 +120,37 @@ public class CuentaQueryServiceImpl implements CuentaQueryService {
     }
 
     private CuentaResponse toCuentaResponse(Cuenta cuenta) {
+        String nombrePropietario = null;
+        String identificacionPropietario = null;
+
+        try {
+            String url = "http://localhost:8082/api/clientes/" + cuenta.getIdCliente();
+            String json = restTemplate.getForObject(url, String.class);
+            JsonNode root = objectMapper.readTree(json);
+            JsonNode nombre = root.get("nombreCompleto");
+            JsonNode documentos = root.get("documentos");
+            if (nombre != null) {
+                nombrePropietario = nombre.asText();
+            }
+            if (documentos != null && documentos.isArray() && documentos.size() > 0) {
+                for (JsonNode doc : documentos) {
+                    String tipo = doc.get("tipoDocumento") != null ? doc.get("tipoDocumento").asText() : null;
+                    if ("CEDULA".equalsIgnoreCase(tipo) || "IDENTIFICACION".equalsIgnoreCase(tipo)) {
+                        JsonNode numero = doc.get("numeroDocumento");
+                        if (numero != null) {
+                            identificacionPropietario = numero.asText();
+                        }
+                        break;
+                    }
+                }
+                if (identificacionPropietario == null && documentos.get(0).get("numeroDocumento") != null) {
+                    identificacionPropietario = documentos.get(0).get("numeroDocumento").asText();
+                }
+            }
+        } catch (Exception e) {
+            log.debug("No se pudo obtener el propietario de la cuenta {}: {}", cuenta.getId(), e.getMessage());
+        }
+
         return CuentaResponse.builder()
                 .id(cuenta.getId())
                 .numeroCuenta(cuenta.getNumeroCuenta())
@@ -138,6 +167,8 @@ public class CuentaQueryServiceImpl implements CuentaQueryService {
                 .fechaUltimoMovimiento(cuenta.getFechaUltimoMovimiento() != null
                         ? cuenta.getFechaUltimoMovimiento().toString() : null)
                 .motivoBloqueo(cuenta.getMotivoBloqueo())
+                .nombrePropietario(nombrePropietario)
+                .identificacionPropietario(identificacionPropietario)
                 .build();
     }
 }

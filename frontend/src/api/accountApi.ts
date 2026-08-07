@@ -3,12 +3,22 @@ import { Cuenta, Saldo, Movimiento } from '@/types/account';
 
 export const accountApi = {
   getCuentas: async (idUsuario: string): Promise<Cuenta[]> => {
-    const response = await apiClient.get<Cuenta[]>(`/api/cuentas?userId=${idUsuario}`);
+    const response = await apiClient.get<Cuenta[]>(`/api/cuentas/cliente/${idUsuario}`);
     return response.data;
   },
 
   getCuenta: async (idCuenta: number): Promise<Cuenta> => {
     const response = await apiClient.get<Cuenta>(`/api/cuentas/${idCuenta}`);
+    return response.data;
+  },
+
+  getCuentaPorNumero: async (numeroCuenta: string): Promise<Cuenta> => {
+    const response = await apiClient.get<Cuenta>(`/api/cuentas/numero/${encodeURIComponent(numeroCuenta)}`);
+    return response.data;
+  },
+
+  getCliente: async (idCliente: number): Promise<any> => {
+    const response = await apiClient.get(`/api/clientes/${idCliente}`);
     return response.data;
   },
 

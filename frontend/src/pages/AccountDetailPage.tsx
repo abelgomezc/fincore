@@ -5,25 +5,43 @@ import { BalanceChart } from '@/components/account/BalanceChart';
 import { Card } from '@/components/ui';
 import { useAuthStore } from '@/store/authStore';
 import { useAccountStore } from '@/store/accountStore';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { IconCreditCard, IconTrendingUp, IconFileText } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 
 export const AccountDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
-  const { selectedCuentaId, setSelectedCuenta, cuentas, saldoActual, movimientos, isLoading } = useAccountStore();
+  const { selectedCuentaId, setSelectedCuenta, cuentas, saldoActual, movimientos, isLoading, fetchCuentas, fetchSaldo, fetchMovimientos } = useAccountStore();
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    if (id) {
-      setSelectedCuenta(parseInt(id, 10));
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (cuentas.length === 0 && isAuthenticated) {
+      const user = useAuthStore.getState().user;
+      if (user?.id) {
+        fetchCuentas(user.id);
+      }
     }
-  }, [isAuthenticated, id, setSelectedCuenta, navigate]);
+  }, [cuentas.length, isAuthenticated, fetchCuentas]);
+
+  useEffect(() => {
+    if (!selectedCuentaId && cuentas.length > 0) {
+      setSelectedCuenta(cuentas[0].id);
+    }
+  }, [cuentas, selectedCuentaId, setSelectedCuenta]);
+
+  useEffect(() => {
+    if (selectedCuentaId) {
+      fetchSaldo(selectedCuentaId);
+      fetchMovimientos(selectedCuentaId);
+    }
+  }, [selectedCuentaId, fetchSaldo, fetchMovimientos]);
 
   if (!isAuthenticated) return null;
 

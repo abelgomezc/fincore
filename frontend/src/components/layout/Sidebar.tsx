@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { useAccountStore } from '@/store/accountStore';
 import { clsx } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   IconLayoutDashboard,
   IconCreditCard,
@@ -14,6 +15,8 @@ import {
   IconBuildingBank,
   IconSettings,
   IconLogout,
+  IconChevronDown,
+  IconWallet,
 } from '@tabler/icons-react';
 
 interface NavItem {
@@ -40,12 +43,21 @@ export const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const isAdmin = user?.roles?.some((r) => r === 'ADMIN' || r === 'SUPER_ADMIN' || r === 'AFRICANO');
+  const { cuentas, selectedCuentaId, setSelectedCuenta, fetchCuentas } = useAccountStore();
+  const [showAccountSelector, setShowAccountSelector] = useState(false);
+
+  useEffect(() => {
+    if (user?.id && cuentas.length === 0) {
+      fetchCuentas(user.id);
+    }
+  }, [user?.id, cuentas.length, fetchCuentas]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  const selectedCuenta = cuentas.find((c) => c.id === selectedCuentaId);
 
   const getRoleLabel = (roles: string[]): string => {
     if (roles.includes('SUPER_ADMIN')) return 'Super Admin';
@@ -98,6 +110,61 @@ export const Sidebar: React.FC = () => {
           <Badge variant={getRoleBadgeVariant(user.roles)} size="sm">
             {getRoleLabel(user.roles)}
           </Badge>
+        </motion.div>
+      )}
+
+      {cuentas.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+          className="px-6 py-3 border-b border-slate-200"
+        >
+          <label className="block text-xs font-medium text-slate-500 mb-1">Cuenta activa</label>
+          <div className="relative">
+            <button
+              onClick={() => setShowAccountSelector(!showAccountSelector)}
+              className="w-full flex items-center justify-between px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm hover:bg-slate-100 transition-colors"
+            >
+              <div className="flex items-center space-x-2">
+                <IconWallet className="w-4 h-4 text-slate-400" />
+                <span className="font-mono text-slate-800">
+                  {selectedCuenta?.numeroCuenta || 'Seleccionar'}
+                </span>
+              </div>
+              <IconChevronDown className={clsx('w-4 h-4 text-slate-400 transition-transform', showAccountSelector && 'rotate-180')} />
+            </button>
+
+            <AnimatePresence>
+              {showAccountSelector && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden"
+                >
+                  {cuentas.map((cuenta) => (
+                    <button
+                      key={cuenta.id}
+                      onClick={() => {
+                        setSelectedCuenta(cuenta.id);
+                        setShowAccountSelector(false);
+                      }}
+                      className={clsx(
+                        'w-full text-left px-3 py-2 text-sm hover:bg-blue-50 transition-colors',
+                        cuenta.id === selectedCuentaId && 'bg-blue-50 text-blue-900'
+                      )}
+                    >
+                      <div className="font-mono text-xs">{cuenta.numeroCuenta}</div>
+                      <div className="text-xs text-slate-500">
+                        {cuenta.tipo} · {cuenta.moneda}
+                      </div>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
       )}
 

@@ -33,4 +33,6 @@ public class CuentaResponse {
     private String fechaApertura;
     private String fechaUltimoMovimiento;
     private String motivoBloqueo;
+    private String nombrePropietario;
+    private String identificacionPropietario;
 }

@@ -32,12 +32,13 @@ antes de considerarse completada.
               │               └─────────┬─────────┘                  │
               │                         │                            │
     ┌─────────▼────────┐      ┌─────────▼────────┐      ┌───────────▼──────────┐
-    │  ACCOUNT-SERVICE │      │  LEDGER-SERVICE   │      │  TRANSFER-SERVICE     │
-    │  :8083            │      │  :8084            │      │  :8085                │
-    │  Cuentas + CQRS   │      │  Ledger doble     │      │  Saga + Estados       │
-    │  + gRPC Server    │      │  partida + gRPC   │      │  + WebSocket          │
-    └─────────┬────────┘      └─────────┬─────────┘      └───────────┬──────────┘
-              │                         │                            │
+     │  ACCOUNT-SERVICE │      │  LEDGER-SERVICE   │      │  TRANSFER-SERVICE     │
+     │  :8083            │      │  :8084            │      │  :8085                │
+     │  Cuentas + CQRS   │      │  Ledger doble     │      │  Saga + Estados       │
+     │  + gRPC Server    │      │  partida + gRPC   │      │  + WebSocket          │
+     │  + REST → customer│      │                   │      │                       │
+     └─────────┬────────┘      └─────────┬────────┘      └───────────┬──────────┘
+               │                         │                            │
     ┌─────────▼────────┐      ┌─────────▼────────┐      ┌───────────▼──────────┐
     │  FRAUD-SERVICE   │      │  NOTIFICATION     │      │  AUDIT-SERVICE        │
     │  :8086            │      │  :8087            │      │  :8088                │
@@ -74,6 +75,7 @@ antes de considerarse completada.
 | Canal         | Uso                                      | Servicios involucrados                          |
 |---------------|------------------------------------------|--------------------------------------------------|
 | REST/HTTP     | API externas (gateway → servicios)       | Todos                                            |
+| REST/HTTP     | Comunicación inter-servicios síncrona     | account-service ↔ customer-service (enriquecimiento de cuenta) |
 | gRPC          | Comunicación interna síncrona            | transfer ↔ account, transfer ↔ ledger, transfer ↔ fraud |
 | Kafka (async) | Eventos de dominio                       | transfer, account, ledger, fraud, audit, notification |
 | Redis         | Cache, rate limiting, sesiones, velocidad| gateway, auth, account, fraud                    |
@@ -87,6 +89,7 @@ antes de considerarse completada.
 5. **Audit trail completo**: todo se registra en audit-service
 6. **Fail-fast**: validaciones en cada paso antes de continuar
 7. **Resiliencia**: circuit breaker + retry en comunicaciones gRPC
+8. **Enriquecimiento REST**: `account-service` consulta `customer-service` vía `RestTemplate` para incluir datos del propietario en `CuentaResponse`
 
 ---
 
@@ -142,8 +145,8 @@ antes de considerarse completada.
 | eureka-server       | 8761   | -                       | Service Discovery                        |
 | api-gateway         | 8080   | -                       | Gateway, JWT, Rate Limiting, CORS        |
 | auth-service        | 8081   | fincore_auth            | OAuth2, JWT, usuarios, sesiones          |
-| customer-service    | 8082   | fincore_customers       | Clientes, KYC, AML, documentos            |
-| account-service     | 8083   | fincore_accounts        | Cuentas, saldos, CQRS, gRPC server        |
+| customer-service    | 8082   | fincore_customers       | Clientes, KYC, AML, documentos (REST público en `/api/clientes/**`) |
+| account-service     | 8083   | fincore_accounts        | Cuentas, saldos, CQRS, gRPC server, enriquecimiento con customer-service |
 | ledger-service      | 8084   | fincore_ledger          | Ledger doble partida, asientos contables  |
 | transfer-service    | 8085   | fincore_transfers       | Saga orchestrator, WebSocket, estados     |
 | fraud-service       | 8086   | fincore_fraud           | Motor antifraude, scoring, lista negra    |
@@ -197,7 +200,7 @@ antes de considerarse completada.
 | 1 | SOLO application.properties. NUNCA .yml ni .yaml |
 | 2 | IDs: SIEMPRE Long con BIGSERIAL. NUNCA UUID |
 | 3 | Secrets: SIEMPRE `${VARIABLE:valor_local}` |
-| 4 | NUNCA FetchType.EAGER. SIEMPRE FetchType.LAZY |
+| 4 | FetchType.LAZY por defecto. Excepciones documentadas y justificadas |
 | 5 | @Autowired en campos. NUNCA inyección por constructor |
 | 6 | NUNCA lógica en controladores. SIEMPRE en servicios |
 | 7 | Interfaces en service/. Implementaciones en service/impl/ |

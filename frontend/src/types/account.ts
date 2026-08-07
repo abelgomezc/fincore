@@ -50,4 +50,6 @@ export interface Cuenta {
   fechaApertura: string;
   ultimaActualizacion: string;
   beneficiarios?: Beneficiario[];
+  nombrePropietario?: string;
+  identificacionPropietario?: string;
 }
