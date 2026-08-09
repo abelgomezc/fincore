@@ -19,24 +19,24 @@ interface FraudScoreCardProps {
 }
 
 const getScoreColor = (score: number) => {
-  if (score >= 70) return { bg: 'bg-red-500', text: 'text-red-600', border: 'border-red-200', light: 'bg-red-50' };
-  if (score >= 30) return { bg: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-200', light: 'bg-amber-50' };
-  return { bg: 'bg-green-500', text: 'text-green-600', border: 'border-green-200', light: 'bg-green-50' };
+  if (score >= 70) return { bg: 'bg-red-500', text: 'text-red-600 dark:text-red-400', border: 'border-red-200 dark:border-red-700', light: 'bg-red-50 dark:bg-red-900/40' };
+  if (score >= 30) return { bg: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-200 dark:border-amber-700', light: 'bg-amber-50 dark:bg-amber-900/40' };
+  return { bg: 'bg-green-500', text: 'text-green-600 dark:text-green-400', border: 'border-green-200 dark:border-green-700', light: 'bg-green-50 dark:bg-green-900/40' };
 };
 
 const getDecisionIcon = (decision: string) => {
   switch (decision) {
-    case 'APROBADO': return <IconCheck className="w-5 h-5 text-green-600" />;
-    case 'RECHAZADO': return <IconX className="w-5 h-5 text-red-600" />;
-    case 'EN_REVISION': return <IconAlertTriangle className="w-5 h-5 text-amber-600" />;
-    default: return <IconInfoCircle className="w-5 h-5 text-slate-400" />;
+    case 'APROBADO': return <IconCheck className="w-5 h-5 text-green-600 dark:text-green-400" />;
+    case 'RECHAZADO': return <IconX className="w-5 h-5 text-red-600 dark:text-red-400" />;
+    case 'EN_REVISION': return <IconAlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />;
+    default: return <IconInfoCircle className="w-5 h-5 text-slate-400 dark:text-slate-500" />;
   }
 };
 
 export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLoading }) => {
   if (isLoading || !evaluacion) {
     return (
-      <div className="bg-slate-100 rounded-2xl p-6 animate-pulse h-64 border border-slate-200" />
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-2xl p-6 animate-pulse h-64 border border-slate-200 dark:border-slate-700" />
     );
   }
 
@@ -49,11 +49,11 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
   return (
     <Card
       title="Análisis de Fraude"
-      icon={<IconShield className="w-5 h-5 text-blue-600" />}
+      icon={<IconShield className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
       footer={
         <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-500">Reglas activadas</span>
-          <span className="font-medium text-slate-700">
+          <span className="text-slate-500 dark:text-slate-400">Reglas activadas</span>
+          <span className="font-medium text-slate-700 dark:text-slate-200">
             {reglasActivadas.length} de {evaluacion.reglasEvaluadas?.length ?? 0}
           </span>
         </div>
@@ -62,8 +62,8 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-slate-800">Score de Riesgo</h3>
-            <p className="text-sm text-slate-500 mt-1">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Score de Riesgo</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {evaluacion.score < 30 ? 'Transacción segura' :
                evaluacion.score < 70 ? 'Requiere revisión' :
                'Alto riesgo detectado'}
@@ -74,7 +74,7 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
             <span className={colors.text + ' font-bold text-xl'}>
               {evaluacion.score}
             </span>
-            <span className="text-slate-500">/ 100</span>
+            <span className="text-slate-500 dark:text-slate-400">/ 100</span>
           </div>
         </div>
 
@@ -84,7 +84,7 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
             color={evaluacion.score >= 70 ? 'red' : evaluacion.score >= 30 ? 'amber' : 'green'}
             className="mt-2"
           />
-          <div className="flex justify-between mt-2 text-xs text-slate-500">
+          <div className="flex justify-between mt-2 text-xs text-slate-500 dark:text-slate-400">
             <span>Bajo riesgo (&lt;30)</span>
             <span>Medio riesgo (30-70)</span>
             <span>Alto riesgo (&gt;70)</span>
@@ -97,7 +97,7 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
         </Badge>
 
         <div className="mt-4 space-y-2 max-h-48 overflow-y-auto">
-          <h4 className="text-sm font-medium text-slate-700 mb-2">Reglas Activadas</h4>
+          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">Reglas Activadas</h4>
           {reglasActivadas.map((regla) => (
             <motion.div
               key={regla.codigo}
@@ -107,11 +107,11 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="font-medium text-slate-700 text-sm">
+                  <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                     {regla.descripcion}
                   </span>
                   {regla.detalle && (
-                    <p className="text-xs text-slate-500 mt-1">{regla.detalle}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{regla.detalle}</p>
                   )}
                 </div>
                 <Badge variant="danger" size="sm">
@@ -126,10 +126,10 @@ export const FraudScoreCard: React.FC<FraudScoreCardProps> = ({ evaluacion, isLo
               key={regla.codigo}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-slate-50 rounded-xl p-3 border border-slate-200"
+              className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700"
             >
               <div className="flex items-center justify-between">
-                <span className="font-medium text-slate-400 text-sm">
+                <span className="font-medium text-slate-400 dark:text-slate-500 text-sm">
                   {regla.descripcion}
                 </span>
                 <Badge variant="neutral" size="sm">

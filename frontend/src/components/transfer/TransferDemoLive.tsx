@@ -37,12 +37,12 @@ interface CuentaResumen {
 }
 
 const estadoBadgeConfig: Record<string, string> = {
-  COMPLETADA: 'bg-green-100 text-green-800 border border-green-200',
-  FALLIDA: 'bg-red-100 text-red-800 border border-red-200',
-  REVERTIDA: 'bg-orange-100 text-orange-800 border border-orange-200',
-  PENDIENTE: 'bg-slate-200 text-slate-700 border border-slate-300',
-  EN_REVISION: 'bg-amber-100 text-amber-800 border border-amber-200 animate-pulse',
-  VALIDANDO: 'bg-blue-100 text-blue-800 border border-blue-200',
+  COMPLETADA: 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-700',
+  FALLIDA: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-700',
+  REVERTIDA: 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-700',
+  PENDIENTE: 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600',
+  EN_REVISION: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-700 animate-pulse',
+  VALIDANDO: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700',
 };
 
 const fireConfetti = () => {
@@ -131,11 +131,11 @@ export const TransferDemoLive: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <h1 className="text-3xl font-bold text-slate-800 mb-2 flex items-center">
-          <IconClock className="w-7 h-7 mr-3 text-blue-600" />
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center">
+          <IconClock className="w-7 h-7 mr-3 text-blue-600 dark:text-blue-400" />
           Transferencia en Vivo
         </h1>
-        <p className="text-slate-500">
+        <p className="text-slate-500 dark:text-slate-400">
           Demostración en tiempo real del Saga Pattern orquestado (12 pasos)
         </p>
       </motion.div>
@@ -147,7 +147,7 @@ export const TransferDemoLive: React.FC = () => {
         className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"
       >
         <div>
-          <h3 className="text-sm font-medium text-slate-500 mb-2 flex items-center">
+          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center">
             <IconWallet className="w-4 h-4 mr-1" />
             Cuenta Origen
           </h3>
@@ -167,7 +167,7 @@ export const TransferDemoLive: React.FC = () => {
         </div>
 
         <div>
-          <h3 className="text-sm font-medium text-slate-500 mb-2 flex items-center">
+          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center">
             <IconWallet className="w-4 h-4 mr-1" />
             Cuenta Destino
           </h3>
@@ -236,7 +236,7 @@ export const TransferDemoLive: React.FC = () => {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card title="Crear Transferencia" icon={<IconSend className="w-5 h-5 text-blue-600" />}>
+            <Card title="Crear Transferencia" icon={<IconSend className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
               <TransferForm
                 cuentas={cuentas}
                 onSubmitSuccess={handleTransferCreated}
@@ -266,18 +266,16 @@ export const TransferDemoLive: React.FC = () => {
             >
               <Card
                 title="Estado de la Transferencia"
-                icon={<IconClock className="w-5 h-5 text-blue-600" />}
+                icon={<IconClock className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
                 footer={
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">
-                      Trace: <code className="font-mono bg-slate-100 px-2 py-1 rounded text-xs">{demoTransfer.traceId}</code>
-                    </span>
+                    <span className="text-slate-500 dark:text-slate-400">Trace: <code className="font-mono bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs">{demoTransfer.traceId}</code></span>
                   </div>
                 }
               >
                 <div className="mb-4">
-                  <span className="text-sm text-slate-500">Monto:</span>
-                  <span className="text-2xl font-bold text-slate-800 ml-2">
+                  <span className="text-sm text-slate-500 dark:text-slate-400">Monto:</span>
+                  <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 ml-2">
                     {formatCurrency(demoTransfer.monto, demoTransfer.moneda)}
                   </span>
                 </div>
@@ -297,9 +295,9 @@ export const TransferDemoLive: React.FC = () => {
               </Card>
             </motion.div>
 
-            <Card title="Asientos Contables Generados" icon={<IconBook className="w-5 h-5 text-blue-600" />}>
-              <div className="text-center py-8 text-slate-400">
-                <IconBook className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+            <Card title="Asientos Contables Generados" icon={<IconBook className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
+              <div className="text-center py-8 text-slate-400 dark:text-slate-500">
+                <IconBook className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                 Los asientos se mostrarán aquí en tiempo real vía WebSocket
               </div>
             </Card>

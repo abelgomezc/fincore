@@ -35,16 +35,16 @@ export const StatsGrid: React.FC<StatsGridProps> = ({ items, cols = 4 }) => {
       {items.map((item, index) => (
         <div
           key={item.label + index}
-          className="bg-card-50 rounded-xl p-4 border border-surface-200 shadow-card hover:shadow-card-hover transition-shadow"
+          className="bg-card-50 dark:bg-slate-800 rounded-xl p-4 border border-surface-200 dark:border-slate-700 shadow-card hover:shadow-card-hover transition-shadow"
         >
           <div className="flex items-center justify-between mb-2">
-            <div className="p-2 bg-surface-100 rounded-lg">{item.icon}</div>
+            <div className="p-2 bg-surface-100 dark:bg-slate-700 rounded-lg">{item.icon}</div>
             {item.trend && (
               <span
                 className={clsx(
                   'text-xs font-medium flex items-center',
-                  item.trend === 'up' ? 'text-success-600' :
-                  item.trend === 'down' ? 'text-danger-600' : 'text-surface-500'
+                  item.trend === 'up' ? 'text-success-600 dark:text-success-400' :
+                  item.trend === 'down' ? 'text-danger-600 dark:text-danger-400' : 'text-surface-500 dark:text-slate-400'
                 )}
               >
                 {item.trend === 'up' && '▲'}
@@ -53,8 +53,8 @@ export const StatsGrid: React.FC<StatsGridProps> = ({ items, cols = 4 }) => {
               </span>
             )}
           </div>
-          <div className="text-2xl font-bold text-dark-500">{item.value}</div>
-          <div className="text-sm text-surface-500 mt-1">{item.label}</div>
+          <div className="text-2xl font-bold text-dark-500 dark:text-slate-100">{item.value}</div>
+          <div className="text-sm text-surface-500 dark:text-slate-400 mt-1">{item.label}</div>
         </div>
       ))}
     </div>

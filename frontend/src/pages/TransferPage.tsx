@@ -19,7 +19,7 @@ export const TransferPage: React.FC = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden ml-64">
         <Header />
@@ -31,8 +31,8 @@ export const TransferPage: React.FC = () => {
               transition={{ duration: 0.4 }}
               className="flex items-center justify-between mb-6"
             >
-              <h1 className="text-3xl font-bold text-slate-800 flex items-center">
-                <IconTransfer className="w-7 h-7 mr-3 text-blue-600" />
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                <IconTransfer className="w-7 h-7 mr-3 text-blue-600 dark:text-blue-400" />
                 Transferencias
               </h1>
             </motion.div>

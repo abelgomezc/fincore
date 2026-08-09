@@ -14,9 +14,9 @@ const baseClasses = 'inline-flex items-center justify-center rounded-lg font-med
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: 'bg-primary-500 hover:bg-primary-600 text-white shadow-md hover:shadow-lg focus:ring-primary-500',
-  secondary: 'bg-surface-200 hover:bg-surface-300 text-dark-500 focus:ring-surface-500',
-  outline: 'border border-surface-400 hover:bg-surface-100 text-dark-500 focus:ring-surface-500',
-  ghost: 'hover:bg-surface-100 text-surface-600 focus:ring-surface-500',
+  secondary: 'bg-surface-200 dark:bg-slate-700 hover:bg-surface-300 dark:hover:bg-slate-600 text-dark-500 dark:text-slate-200 focus:ring-surface-500',
+  outline: 'border border-surface-400 dark:border-slate-600 hover:bg-surface-100 dark:hover:bg-slate-700 text-dark-500 dark:text-slate-200 focus:ring-surface-500',
+  ghost: 'hover:bg-surface-100 dark:hover:bg-slate-700 text-surface-600 dark:text-slate-300 focus:ring-surface-500',
   danger: 'bg-danger-500 hover:bg-danger-600 text-white focus:ring-danger-500',
   success: 'bg-success-500 hover:bg-success-600 text-white focus:ring-success-500',
 };

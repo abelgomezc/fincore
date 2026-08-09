@@ -48,7 +48,7 @@ export const AccountDetailPage: React.FC = () => {
   const cuenta = cuentas.find((c) => c.id === selectedCuentaId);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden ml-64">
         <Header />
@@ -59,13 +59,13 @@ export const AccountDetailPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center justify-between mb-6"
             >
-              <h1 className="text-3xl font-bold text-slate-800 flex items-center">
-                <IconCreditCard className="w-7 h-7 mr-3 text-blue-600" />
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                <IconCreditCard className="w-7 h-7 mr-3 text-blue-600 dark:text-blue-400" />
                 Detalle de Cuenta
               </h1>
               {cuenta && (
-                <div className="text-sm text-slate-500">
-                  Cuenta: <span className="font-mono text-slate-800 font-medium">{cuenta.numeroCuenta}</span>
+                <div className="text-sm text-slate-500 dark:text-slate-400">
+                  Cuenta: <span className="font-mono text-slate-800 dark:text-slate-100 font-medium">{cuenta.numeroCuenta}</span>
                 </div>
               )}
             </motion.div>
@@ -80,7 +80,7 @@ export const AccountDetailPage: React.FC = () => {
                 <AccountCard saldo={saldoActual || undefined} isLoading={isLoading} />
               </div>
               <div className="lg:col-span-2">
-                <Card title="Evolución del Saldo" icon={<IconTrendingUp className="w-5 h-5 text-blue-600" />}>
+                <Card title="Evolución del Saldo" icon={<IconTrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
                   <BalanceChart
                     movimientos={movimientos?.map(m => ({ fecha: m.fechaCreacion, saldoNuevo: m.saldoNuevo }))}
                     isLoading={isLoading}
@@ -95,9 +95,9 @@ export const AccountDetailPage: React.FC = () => {
               transition={{ delay: 0.2 }}
               className="mb-6"
             >
-              <Card title="Movimientos" icon={<IconFileText className="w-5 h-5 text-blue-600" />}>
-                <div className="text-center py-12 text-slate-400">
-                  <IconFileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+              <Card title="Movimientos" icon={<IconFileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
+                <div className="text-center py-12 text-slate-400 dark:text-slate-500">
+                  <IconFileText className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                   <p>Cargando movimientos...</p>
                 </div>
               </Card>
@@ -109,9 +109,9 @@ export const AccountDetailPage: React.FC = () => {
               transition={{ delay: 0.3 }}
               className="mb-6"
             >
-              <Card title="Extracto Contable (Ledger)" icon={<IconFileText className="w-5 h-5 text-blue-600" />}>
-                <div className="text-center py-12 text-slate-400">
-                  <IconFileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+              <Card title="Extracto Contable (Ledger)" icon={<IconFileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
+                <div className="text-center py-12 text-slate-400 dark:text-slate-500">
+                  <IconFileText className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                   Los asientos contables se mostrarán aquí
                 </div>
               </Card>

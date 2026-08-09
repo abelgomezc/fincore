@@ -7,6 +7,10 @@
     @apply bg-surface text-dark antialiased;
   }
 
+  html.dark body {
+    @apply bg-slate-900 text-slate-100 antialiased;
+  }
+
   ::-webkit-scrollbar {
     width: 8px;
   }
@@ -19,6 +23,16 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #ced4da;
+  }
+
+  html.dark ::-webkit-scrollbar-track {
+    background: #0f172a;
+  }
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
   }
 }
 
@@ -69,6 +83,10 @@
   animation: float 6s infinite ease-in-out;
 }
 
+html.dark .login-particle {
+  background: rgba(59, 130, 246, 0.5);
+}
+
 .login-typing {
   overflow: hidden;
   white-space: nowrap;
@@ -95,4 +113,20 @@
 
 .animate-pulse-green {
   animation: pulse-green 2s ease-in-out;
+}
+
+/* Toast base styles */
+.toast {
+  background: #ffffff;
+  color: #2C3E50;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+html.dark .toast {
+  background: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }

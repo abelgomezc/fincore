@@ -83,7 +83,7 @@ export const DashboardPage: React.FC = () => {
   const dailyProgress = Math.min((dailyUsed / dailyLimit) * 100, 100);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden ml-64">
         <Header />
@@ -96,10 +96,10 @@ export const DashboardPage: React.FC = () => {
               className="flex items-center justify-between mb-6"
             >
               <div>
-                <h1 className="text-3xl font-bold text-slate-800">
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
                   Bienvenido, {user?.nombreCompleto || 'Usuario'}
                 </h1>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                   Panel de control financiero
                 </p>
               </div>
@@ -137,7 +137,7 @@ export const DashboardPage: React.FC = () => {
                 </Metric>
                 <Flex justifyContent="start" className="mt-2">
                   <TremorBadge color="green" icon={IconTrendingUp}>+12.5%</TremorBadge>
-                  <Text className="text-slate-500">vs mes anterior</Text>
+                  <Text className="text-slate-500 dark:text-slate-400">vs mes anterior</Text>
                 </Flex>
               </TremorCard>
 
@@ -174,7 +174,7 @@ export const DashboardPage: React.FC = () => {
                     color={dailyProgress > 80 ? 'red' : dailyProgress > 50 ? 'yellow' : 'blue'}
                     className="mt-2"
                   />
-                  <Text className="text-xs text-slate-500 mt-1">
+                  <Text className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {dailyProgress.toFixed(1)}% de {formatCurrency(dailyLimit)}
                   </Text>
                 </div>
@@ -226,9 +226,9 @@ export const DashboardPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <Card title="Actividad Reciente" icon={<IconActivity className="w-5 h-5 text-blue-600" />}>
-                <div className="text-center py-12 text-slate-400">
-                  <IconActivity className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+              <Card title="Actividad Reciente" icon={<IconActivity className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
+                <div className="text-center py-12 text-slate-400 dark:text-slate-500">
+                  <IconActivity className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
                   <p>Cargando movimientos...</p>
                 </div>
               </Card>

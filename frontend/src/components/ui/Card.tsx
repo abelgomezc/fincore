@@ -22,25 +22,25 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       className={clsx(
-        'bg-card-50 rounded-xl border border-surface-200',
+        'bg-card-50 dark:bg-slate-800 rounded-xl border border-surface-200 dark:border-slate-700',
         'transition-all duration-200 hover:shadow-md',
         className
       )}
       {...props}
     >
       {(title || subtitle || icon) && (
-        <div className="px-6 py-4 border-b border-surface-200">
+        <div className="px-6 py-4 border-b border-surface-200 dark:border-slate-700">
           <div className="flex items-center space-x-3">
-            {icon && <span className="text-primary-500 flex-shrink-0">{icon}</span>}
+            {icon && <span className="text-primary-500 dark:text-primary-400 flex-shrink-0">{icon}</span>}
             <div>
-              {title && <h2 className="text-lg font-semibold text-dark-500">{title}</h2>}
-              {subtitle && <p className="text-sm text-surface-500">{subtitle}</p>}
+              {title && <h2 className="text-lg font-semibold text-dark-500 dark:text-slate-100">{title}</h2>}
+              {subtitle && <p className="text-sm text-surface-500 dark:text-slate-400">{subtitle}</p>}
             </div>
           </div>
         </div>
       )}
       <div className={noPadding ? '' : 'px-6 py-4'}>{children}</div>
-      {footer && <div className="px-6 py-4 border-t border-surface-200 bg-surface-100/50">{footer}</div>}
+      {footer && <div className="px-6 py-4 border-t border-surface-200 dark:border-slate-700 bg-surface-100/50 dark:bg-slate-800/50">{footer}</div>}
     </div>
   );
 };
