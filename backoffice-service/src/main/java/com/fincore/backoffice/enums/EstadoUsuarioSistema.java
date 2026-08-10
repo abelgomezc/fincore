@@ -1,22 +1,21 @@
-package com.fincore.auth.enums;
+package com.fincore.backoffice.enums;
 
 /**
- * Estados posibles de un usuario en el sistema.
+ * Estados posibles de un usuario del sistema backoffice.
  *
  * © 2026 Abel Gomez. Todos los derechos reservados.
  */
-public enum EstadoUsuario {
+public enum EstadoUsuarioSistema {
 
     ACTIVO("Activo", "Usuario activo y con acceso"),
     INACTIVO("Inactivo", "Usuario inactivo — no puede acceder"),
-    BLOQUEADO("Bloqueado", "Usuario bloqueado por intentos fallidos o seguridad"),
     SUSPENDIDO("Suspendido", "Usuario suspendido temporalmente"),
-    ELIMINADO("Eliminado", "Usuario eliminado del sistema — sin acceso");
+    ELIMINADO("Eliminado", "Usuario eliminado del sistema");
 
     private final String nombre;
     private final String descripcion;
 
-    EstadoUsuario(String nombre, String descripcion) {
+    EstadoUsuarioSistema(String nombre, String descripcion) {
         this.nombre = nombre;
         this.descripcion = descripcion;
     }

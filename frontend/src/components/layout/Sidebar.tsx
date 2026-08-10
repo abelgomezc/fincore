@@ -70,6 +70,8 @@ export const Sidebar: React.FC = () => {
     return 'warning';
   };
 
+  const isAdmin = user?.roles?.some((r) => r === 'ADMIN' || r === 'SUPER_ADMIN' || r === 'AFRICANO') ?? false;
+
   const allNav = isAdmin ? [...navigation, ...adminNavigation] : navigation;
 
   return (

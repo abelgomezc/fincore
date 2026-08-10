@@ -170,6 +170,16 @@ export const LoginPage = () => {
           </motion.button>
         </form>
 
+        <div className="mt-4 flex items-center justify-center">
+          <button
+            type="button"
+            onClick={() => navigate('/register')}
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+          >
+            ¿No tienes cuenta? Regístrate
+          </button>
+        </div>
+
         <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400">
           <IconLock className="w-3 h-3" />
           <span>Conexión segura SSL · Sesión cifrada AES-256</span>

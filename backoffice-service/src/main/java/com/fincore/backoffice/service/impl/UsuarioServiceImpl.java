@@ -1,6 +1,7 @@
 package com.fincore.backoffice.service.impl;
 
 import com.fincore.backoffice.entity.UsuarioSistema;
+import com.fincore.backoffice.enums.EstadoUsuarioSistema;
 import com.fincore.backoffice.repository.UsuarioSistemaRepository;
 import com.fincore.backoffice.service.UsuarioService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -46,7 +47,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setNombreCompleto(nombreCompleto);
         usuario.setEmail(email);
         usuario.setRoles(roles);
-        usuario.setEsActivo(true);
+        usuario.setEstado(EstadoUsuarioSistema.ACTIVO);
         usuario.setFechaCreacion(LocalDateTime.now());
         usuario.setFechaActualizacion(LocalDateTime.now());
 
@@ -57,6 +58,32 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioSistema buscarPorUsername(String username) {
         return repository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
+    }
+
+    @Override
+    public List<UsuarioSistema> listarUsuarios() {
+        return repository.findAll();
+    }
+
+    @Override
+    public UsuarioSistema actualizarUsuario(Long id, String nombreCompleto, String email, String roles) {
+        UsuarioSistema usuario = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + id));
+        if (nombreCompleto != null) usuario.setNombreCompleto(nombreCompleto);
+        if (email != null) usuario.setEmail(email);
+        if (roles != null) usuario.setRoles(roles);
+        usuario.setFechaActualizacion(LocalDateTime.now());
+        return repository.save(usuario);
+    }
+
+    @Override
+    public void cambiarEstado(Long id, EstadoUsuarioSistema estado) {
+        UsuarioSistema usuario = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + id));
+        usuario.setEstado(estado);
+        usuario.setFechaActualizacion(LocalDateTime.now());
+        repository.save(usuario);
+        log.info("Usuario {} cambiado a estado: {}", usuario.getUsername(), estado);
     }
 
     @Override

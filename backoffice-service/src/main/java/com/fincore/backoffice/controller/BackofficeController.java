@@ -1,6 +1,7 @@
 package com.fincore.backoffice.controller;
 
 import com.fincore.backoffice.entity.UsuarioSistema;
+import com.fincore.backoffice.enums.EstadoUsuarioSistema;
 import com.fincore.backoffice.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,10 +36,35 @@ public class BackofficeController {
         return ResponseEntity.ok(usuario);
     }
 
+    @GetMapping("/usuarios")
+    public ResponseEntity<List<UsuarioSistema>> listarUsuarios() {
+        List<UsuarioSistema> usuarios = usuarioService.listarUsuarios();
+        return ResponseEntity.ok(usuarios);
+    }
+
     @GetMapping("/usuarios/{username}")
     public ResponseEntity<UsuarioSistema> buscarUsuario(@PathVariable String username) {
         UsuarioSistema usuario = usuarioService.buscarPorUsername(username);
         return ResponseEntity.ok(usuario);
+    }
+
+    @PutMapping("/usuarios/{id}")
+    public ResponseEntity<UsuarioSistema> actualizarUsuario(@PathVariable Long id,
+                                                             @RequestBody Map<String, String> request) {
+        UsuarioSistema usuario = usuarioService.actualizarUsuario(
+                id,
+                request.get("nombreCompleto"),
+                request.get("email"),
+                request.get("roles")
+        );
+        return ResponseEntity.ok(usuario);
+    }
+
+    @PutMapping("/usuarios/{id}/estado")
+    public ResponseEntity<Void> cambiarEstado(@PathVariable Long id,
+                                               @RequestParam EstadoUsuarioSistema estado) {
+        usuarioService.cambiarEstado(id, estado);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/usuarios/validar")

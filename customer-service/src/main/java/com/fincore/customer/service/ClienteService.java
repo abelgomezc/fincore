@@ -36,6 +36,10 @@ public interface ClienteService {
 
     void desbloquearCliente(Long id);
 
+    void suspenderCliente(Long id, String motivo);
+
+    void reactivarCliente(Long id);
+
     void eliminarCliente(Long id);
 
     boolean validarCedula(String cedula);

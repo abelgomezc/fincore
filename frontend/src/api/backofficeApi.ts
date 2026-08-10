@@ -1,5 +1,5 @@
 import apiClient from './axiosConfig';
-import { Usuario, Cliente } from '@/types';
+import { Usuario, UsuarioBackoffice, Cliente } from '@/types';
 import { Transferencia } from '@/types/transfer';
 import { EvaluacionFraude } from '@/types/fraud';
 
@@ -31,13 +31,22 @@ export const backofficeApi = {
     return response.data;
   },
 
-  getUsuariosSistema: async (): Promise<Usuario[]> => {
-    const response = await apiClient.get<Usuario[]>('/api/backoffice/usuarios');
+  getUsuariosSistema: async (): Promise<UsuarioBackoffice[]> => {
+    const response = await apiClient.get<UsuarioBackoffice[]>('/api/backoffice/usuarios');
     return response.data;
   },
 
   getClientes: async (page: number = 0): Promise<Cliente[]> => {
     const response = await apiClient.get<Cliente[]>(`/api/backoffice/clientes?page=${page}`);
     return response.data;
+  },
+
+  actualizarUsuarioSistema: async (id: number, data: { nombreCompleto?: string; email?: string; roles?: string }): Promise<UsuarioBackoffice> => {
+    const response = await apiClient.put<UsuarioBackoffice>(`/api/backoffice/usuarios/${id}`, data);
+    return response.data;
+  },
+
+  cambiarEstadoUsuarioSistema: async (id: number, estado: string): Promise<void> => {
+    await apiClient.put(`/api/backoffice/usuarios/${id}/estado`, null, { params: { estado } });
   },
 };

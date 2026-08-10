@@ -1,6 +1,9 @@
 package com.fincore.backoffice.service;
 
 import com.fincore.backoffice.entity.UsuarioSistema;
+import com.fincore.backoffice.enums.EstadoUsuarioSistema;
+
+import java.util.List;
 
 /**
  * Servicio de gestión de usuarios del backoffice.
@@ -13,6 +16,12 @@ public interface UsuarioService {
                                 String email, String roles);
 
     UsuarioSistema buscarPorUsername(String username);
+
+    List<UsuarioSistema> listarUsuarios();
+
+    UsuarioSistema actualizarUsuario(Long id, String nombreCompleto, String email, String roles);
+
+    void cambiarEstado(Long id, EstadoUsuarioSistema estado);
 
     boolean validarCredenciales(String username, String password);
 }

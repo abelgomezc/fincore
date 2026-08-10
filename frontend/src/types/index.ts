@@ -8,9 +8,32 @@ export interface Usuario {
   ultimaConexion?: string;
 }
 
+export interface UsuarioBackoffice {
+  id: number;
+  username: string;
+  nombreCompleto?: string;
+  email?: string;
+  roles?: string;
+  estado: 'ACTIVO' | 'INACTIVO' | 'SUSPENDIDO' | 'ELIMINADO';
+  fechaCreacion?: string;
+  fechaActualizacion?: string;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  primerNombre: string;
+  segundoNombre?: string;
+  primerApellido: string;
+  segundoApellido?: string;
+  rol: 'CLIENTE' | 'OPERADOR' | 'SUPERVISOR' | 'AUDITOR' | 'ADMIN';
+  idCliente?: number;
+  deviceId?: string;
 }
 
 export interface AuthResponse {
@@ -41,10 +64,11 @@ export interface Cliente {
   segundoNombre?: string;
   primerApellido: string;
   segundoApellido?: string;
+  nombreCompleto?: string;
   fechaNacimiento?: string;
   genero?: string;
   email?: string;
   telefono?: string;
-  estado: 'ACTIVO' | 'INACTIVO' | 'BLOQUEADO';
+  estado: 'ACTIVO' | 'INACTIVO' | 'BLOQUEADO' | 'SUSPENDIDO' | 'ELIMINADO';
   fechaCreacion: string;
 }

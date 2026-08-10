@@ -1,5 +1,6 @@
 package com.fincore.backoffice.entity;
 
+import com.fincore.backoffice.enums.EstadoUsuarioSistema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -43,8 +44,8 @@ public class UsuarioSistema {
     @Column(name = "roles", columnDefinition = "jsonb")
     private String roles;
 
-    @Column(name = "es_activo")
-    private Boolean esActivo = true;
+    @Column(name = "estado", length = 20, nullable = false)
+    private EstadoUsuarioSistema estado = EstadoUsuarioSistema.ACTIVO;
 
     @Column(name = "fecha_creacion")
     private LocalDateTime fechaCreacion;

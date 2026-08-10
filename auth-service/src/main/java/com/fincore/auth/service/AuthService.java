@@ -6,6 +6,8 @@ import com.fincore.auth.dto.request.RegisterRequest;
 import com.fincore.auth.dto.response.AuthResponse;
 import com.fincore.auth.dto.response.UsuarioResponse;
 
+import java.util.List;
+
 /**
  * Interfaz del servicio de autenticación.
  *
@@ -31,4 +33,12 @@ public interface AuthService {
     void bloquearUsuario(Long userId, String motivo);
 
     void desbloquearUsuario(Long userId);
+
+    void suspenderUsuario(Long userId, String motivo);
+
+    void reactivarUsuario(Long userId);
+
+    void eliminarUsuario(Long userId);
+
+    List<UsuarioResponse> listarUsuarios();
 }

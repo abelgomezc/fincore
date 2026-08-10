@@ -58,6 +58,23 @@ mvn -f fincore-parent/pom.xml -pl transfer-service -am compile -DskipTests
 - **ledger-service**: Uses `jakarta.persistence.Version` for optimistic locking.
 - **notification-service**: Uses Spring's `WebSocketMessageBrokerConfigurer` for STOMP/WebSocket.
 
+## Reinicio tras cambios
+
+Cuando se modifiquen archivos, considerá si el cambio requiere reinicio antes de levantar servicios:
+
+| Cambio | Requiere reinicio | Acción |
+|-------|-------------------|--------|
+| `src/main/java/**` en cualquier microservicio | Sí | Parar ese servicio y volver a ejecutar `mvn spring-boot:run -f <servicio>/pom.xml` |
+| `src/main/resources/application.properties` | Sí | Reiniciar el servicio afectado |
+| Migración Flyway (`src/main/resources/db/migration/**`) | Sí | Reiniciar el servicio para que aplique |
+| `pom.xml` (dependencias, plugins, flags) | Sí | `mvn compile` y reiniciar el servicio |
+| `frontend/src/**` | Sí | En la terminal del frontend: `Ctrl+C` y volver a `npm run dev` |
+| `frontend/tailwind.config.ts` o `vite.config.ts` | Sí | Reiniciar el dev server del frontend |
+| `README.md`, `AGENTS.md`, documentación | No | Sin reinicio |
+| `scripts/**` | No | Sin reinicio |
+
+Regla general: si el cambio toca código Java, configuración de Spring, dependencias o el bundler del frontend, hay que reiniciar el proceso afectado. Si es solo documentación o scripts, no.
+
 ## Transfer Service Specifics
 
 - 12-step orchestrated saga with compensating transactions

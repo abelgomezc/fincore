@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * Controlador de autenticación.
  *
@@ -23,6 +25,10 @@ import org.springframework.web.bind.annotation.*;
  * - GET /api/auth/usuario/{email} — obtener información del usuario
  * - PUT /api/auth/usuario/{id}/bloquear — bloquear usuario (ADMIN)
  * - PUT /api/auth/usuario/{id}/desbloquear — desbloquear usuario (ADMIN)
+ * - PUT /api/auth/usuario/{id}/suspender — suspender usuario (ADMIN)
+ * - PUT /api/auth/usuario/{id}/reactivar — reactivar usuario (ADMIN)
+ * - PUT /api/auth/usuario/{id}/eliminar — eliminar usuario (ADMIN)
+ * - GET /api/auth/usuarios — listar todos los usuarios (ADMIN)
  *
  * © 2026 Abel Gomez. Todos los derechos reservados.
  */
@@ -81,6 +87,13 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/usuarios")
+    public ResponseEntity<List<UsuarioResponse>> listarUsuarios() {
+        log.info("GET /api/auth/usuarios");
+        List<UsuarioResponse> response = authService.listarUsuarios();
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/usuario/{id}/bloquear")
     public ResponseEntity<Void> bloquearUsuario(@PathVariable Long id,
                                                  @RequestParam String motivo) {
@@ -93,6 +106,28 @@ public class AuthController {
     public ResponseEntity<Void> desbloquearUsuario(@PathVariable Long id) {
         log.info("PUT /api/auth/usuario/{}/desbloquear", id);
         authService.desbloquearUsuario(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/usuario/{id}/suspender")
+    public ResponseEntity<Void> suspenderUsuario(@PathVariable Long id,
+                                                  @RequestParam String motivo) {
+        log.info("PUT /api/auth/usuario/{}/suspender — motivo: {}", id, motivo);
+        authService.suspenderUsuario(id, motivo);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/usuario/{id}/reactivar")
+    public ResponseEntity<Void> reactivarUsuario(@PathVariable Long id) {
+        log.info("PUT /api/auth/usuario/{}/reactivar", id);
+        authService.reactivarUsuario(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/usuario/{id}/eliminar")
+    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
+        log.info("PUT /api/auth/usuario/{}/eliminar", id);
+        authService.eliminarUsuario(id);
         return ResponseEntity.ok().build();
     }
 }

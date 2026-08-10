@@ -10,7 +10,8 @@ public enum EstadoCliente {
     ACTIVO("Activo", "Cliente activo y con acceso a servicios"),
     INACTIVO("Inactivo", "Cliente inactivo"),
     BLOQUEADO("Bloqueado", "Cliente bloqueado por sospecha de fraude"),
-    SUSPENDIDO("Suspendido", "Cliente suspendido temporalmente");
+    SUSPENDIDO("Suspendido", "Cliente suspendido temporalmente"),
+    ELIMINADO("Eliminado", "Cliente eliminado del sistema");
 
     private final String nombre;
     private final String descripcion;

@@ -211,10 +211,30 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
+    public void suspenderCliente(Long id, String motivo) {
+        log.info("Suspendiendo cliente: ID={}, motivo={}", id, motivo);
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
+        cliente.setEstado(EstadoCliente.SUSPENDIDO);
+        clienteRepository.save(cliente);
+        eventProducer.publicarClienteBloqueado(id, motivo);
+    }
+
+    @Override
+    public void reactivarCliente(Long id) {
+        log.info("Reactivando cliente: ID={}", id);
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
+        cliente.setEstado(EstadoCliente.ACTIVO);
+        clienteRepository.save(cliente);
+        eventProducer.publicarClienteDesbloqueado(id);
+    }
+
+    @Override
     public void eliminarCliente(Long id) {
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
-        cliente.setEstado(EstadoCliente.INACTIVO);
+        cliente.setEstado(EstadoCliente.ELIMINADO);
         clienteRepository.save(cliente);
         eventProducer.publicarClienteDesactivado(id);
     }

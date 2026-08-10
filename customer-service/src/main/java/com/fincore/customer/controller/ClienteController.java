@@ -28,7 +28,9 @@ import java.util.List;
  * - GET /api/clientes/buscar — buscar por nombre (paginado)
  * - PUT /api/clientes/{id}/bloquear — bloquear cliente
  * - PUT /api/clientes/{id}/desbloquear — desbloquear cliente
- * - DELETE /api/clientes/{id} — desactivar cliente
+ * - PUT /api/clientes/{id}/suspender — suspender cliente
+ * - PUT /api/clientes/{id}/reactivar — reactivar cliente
+ * - DELETE /api/clientes/{id} — eliminar cliente
  * - GET /api/clientes/{id}/kyc — obtener estado KYC
  * - PUT /api/clientes/{id}/kyc — actualizar KYC
  * - GET /api/clientes/validar-cedula/{cedula} — validar cédula ecuatoriana
@@ -105,6 +107,22 @@ public class ClienteController {
     public ResponseEntity<Void> desbloquearCliente(@PathVariable Long id) {
         log.info("PUT /api/clientes/{}/desbloquear", id);
         clienteService.desbloquearCliente(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/suspender")
+    public ResponseEntity<Void> suspenderCliente(
+            @PathVariable Long id,
+            @RequestParam String motivo) {
+        log.info("PUT /api/clientes/{}/suspender — motivo: {}", id, motivo);
+        clienteService.suspenderCliente(id, motivo);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/reactivar")
+    public ResponseEntity<Void> reactivarCliente(@PathVariable Long id) {
+        log.info("PUT /api/clientes/{}/reactivar", id);
+        clienteService.reactivarCliente(id);
         return ResponseEntity.ok().build();
     }
 

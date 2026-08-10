@@ -28,6 +28,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -85,6 +86,12 @@ public class AuthServiceImpl implements AuthService {
         if (usuario.isBloqueado()) {
             log.warn("Usuario bloqueado: {}", request.getEmail());
             throw new UsuarioBloqueadoException("Usuario bloqueado por intentos fallidos. Intente más tarde.");
+        }
+
+        // Verificar si está eliminado
+        if (usuario.getEstado() == EstadoUsuario.ELIMINADO) {
+            log.warn("Usuario eliminado intentó login: {}", request.getEmail());
+            throw new UsuarioNoEncontradoException("Usuario no encontrado o eliminado del sistema");
         }
 
         // Validar contraseña
@@ -301,6 +308,60 @@ public class AuthServiceImpl implements AuthService {
         usuario.resetearIntentosFallidos();
         usuarioRepository.save(usuario);
         log.info("Usuario desbloqueado: {}", usuario.getEmail());
+    }
+
+    @Override
+    public void suspenderUsuario(Long userId, String motivo) {
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + userId));
+        usuario.setEstado(EstadoUsuario.SUSPENDIDO);
+        usuarioRepository.save(usuario);
+        log.info("Usuario suspendido: {} por motivo: {}", usuario.getEmail(), motivo);
+    }
+
+    @Override
+    public void reactivarUsuario(Long userId) {
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + userId));
+        if (usuario.getEstado() == EstadoUsuario.ELIMINADO) {
+            throw new IllegalArgumentException("No se puede reactivar un usuario eliminado");
+        }
+        usuario.setEstado(EstadoUsuario.ACTIVO);
+        usuario.setFechaBloqueo(null);
+        usuario.resetearIntentosFallidos();
+        usuarioRepository.save(usuario);
+        log.info("Usuario reactivado: {}", usuario.getEmail());
+    }
+
+    @Override
+    public void eliminarUsuario(Long userId) {
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + userId));
+        usuario.setEstado(EstadoUsuario.ELIMINADO);
+        usuarioRepository.save(usuario);
+        log.info("Usuario eliminado: {}", usuario.getEmail());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UsuarioResponse> listarUsuarios() {
+        return usuarioRepository.findAll().stream()
+                .map(usuario -> UsuarioResponse.builder()
+                        .id(usuario.getId())
+                        .email(usuario.getEmail())
+                        .primerNombre(usuario.getPrimerNombre())
+                        .segundoNombre(usuario.getSegundoNombre())
+                        .primerApellido(usuario.getPrimerApellido())
+                        .segundoApellido(usuario.getSegundoApellido())
+                        .nombreCompleto(usuario.getNombreCompleto())
+                        .rol(usuario.getRol())
+                        .estado(usuario.getEstado())
+                        .idCliente(usuario.getIdCliente())
+                        .intentosFallidos(usuario.getIntentosFallidos())
+                        .fechaCreacion(usuario.getFechaCreacion() != null ? usuario.getFechaCreacion().toString() : null)
+                        .fechaActualizacion(usuario.getFechaActualizacion() != null ? usuario.getFechaActualizacion().toString() : null)
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private void registrarSesion(Usuario usuario, String sessionId, String deviceId,
