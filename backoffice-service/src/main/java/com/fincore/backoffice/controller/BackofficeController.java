@@ -5,23 +5,21 @@ import com.fincore.backoffice.enums.EstadoUsuarioSistema;
 import com.fincore.backoffice.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * Controller REST para operaciones del backoffice.
- *
- * © 2026 Abel Gomez. Todos los derechos reservados.
- */
 @RestController
 @RequestMapping("/api/backoffice")
 public class BackofficeController {
 
     private final UsuarioService usuarioService;
+    private final RestClient restClient;
 
-    public BackofficeController(UsuarioService usuarioService) {
+    public BackofficeController(UsuarioService usuarioService, RestClient restClient) {
         this.usuarioService = usuarioService;
+        this.restClient = restClient;
     }
 
     @PostMapping("/usuarios")
@@ -75,4 +73,14 @@ public class BackofficeController {
         );
         return ResponseEntity.ok(valido);
     }
+
+    @GetMapping("/clientes")
+    public ResponseEntity<List<Map<String, Object>>> listarClientes() {
+        List<Map<String, Object>> clientes = restClient.get()
+                .uri("/api/clientes")
+                .retrieve()
+                .body(new org.springframework.core.ParameterizedTypeReference<List<Map<String, Object>>>() {});
+        return ResponseEntity.ok(clientes);
+    }
 }
+

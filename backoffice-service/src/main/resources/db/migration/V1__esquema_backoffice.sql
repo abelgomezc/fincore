@@ -4,8 +4,8 @@ CREATE TABLE usuarios_sistema (
     password_hash VARCHAR(255) NOT NULL,
     nombre_completo VARCHAR(100),
     email VARCHAR(100),
-    roles JSONB NOT NULL,
-    es_activo BOOLEAN DEFAULT TRUE,
+    roles TEXT NOT NULL,
+    estado VARCHAR(20) NOT NULL DEFAULT 'ACTIVO',
     fecha_creacion TIMESTAMP DEFAULT NOW(),
     fecha_actualizacion TIMESTAMP DEFAULT NOW()
 );
