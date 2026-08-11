@@ -15,6 +15,8 @@ import com.fincore.customer.enums.TipoDocumento;
 import com.fincore.customer.exception.ClienteNoEncontradoException;
 import com.fincore.customer.kafka.ClienteEventProducer;
 import com.fincore.customer.repository.ClienteRepository;
+import com.fincore.customer.repository.AuditoriaEstadoClienteRepository;
+import com.fincore.customer.entity.AuditoriaEstadoCliente;
 import com.fincore.customer.service.ClienteService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -45,11 +47,14 @@ public class ClienteServiceImpl implements ClienteService {
 
     private final ClienteRepository clienteRepository;
     private final ClienteEventProducer eventProducer;
+    private final AuditoriaEstadoClienteRepository auditoriaEstadoClienteRepository;
 
     public ClienteServiceImpl(ClienteRepository clienteRepository,
-                              ClienteEventProducer eventProducer) {
+                              ClienteEventProducer eventProducer,
+                              AuditoriaEstadoClienteRepository auditoriaEstadoClienteRepository) {
         this.clienteRepository = clienteRepository;
         this.eventProducer = eventProducer;
+        this.auditoriaEstadoClienteRepository = auditoriaEstadoClienteRepository;
     }
 
     @Override
@@ -195,8 +200,10 @@ public class ClienteServiceImpl implements ClienteService {
         log.info("Bloqueado cliente: ID={}, motivo={}", id, motivo);
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
+        EstadoCliente estadoAnterior = cliente.getEstado();
         cliente.setEstado(EstadoCliente.BLOQUEADO);
         clienteRepository.save(cliente);
+        registrarCambioEstado(cliente, estadoAnterior, cliente.getEstado(), motivo);
         eventProducer.publicarClienteBloqueado(id, motivo);
     }
 
@@ -205,8 +212,10 @@ public class ClienteServiceImpl implements ClienteService {
         log.info("Desbloqueando cliente: ID={}", id);
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
+        EstadoCliente estadoAnterior = cliente.getEstado();
         cliente.setEstado(EstadoCliente.ACTIVO);
         clienteRepository.save(cliente);
+        registrarCambioEstado(cliente, estadoAnterior, cliente.getEstado(), null);
         eventProducer.publicarClienteDesbloqueado(id);
     }
 
@@ -215,8 +224,10 @@ public class ClienteServiceImpl implements ClienteService {
         log.info("Suspendiendo cliente: ID={}, motivo={}", id, motivo);
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
+        EstadoCliente estadoAnterior = cliente.getEstado();
         cliente.setEstado(EstadoCliente.SUSPENDIDO);
         clienteRepository.save(cliente);
+        registrarCambioEstado(cliente, estadoAnterior, cliente.getEstado(), motivo);
         eventProducer.publicarClienteBloqueado(id, motivo);
     }
 
@@ -225,8 +236,10 @@ public class ClienteServiceImpl implements ClienteService {
         log.info("Reactivando cliente: ID={}", id);
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
+        EstadoCliente estadoAnterior = cliente.getEstado();
         cliente.setEstado(EstadoCliente.ACTIVO);
         clienteRepository.save(cliente);
+        registrarCambioEstado(cliente, estadoAnterior, cliente.getEstado(), null);
         eventProducer.publicarClienteDesbloqueado(id);
     }
 
@@ -234,8 +247,10 @@ public class ClienteServiceImpl implements ClienteService {
     public void eliminarCliente(Long id) {
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
+        EstadoCliente estadoAnterior = cliente.getEstado();
         cliente.setEstado(EstadoCliente.ELIMINADO);
         clienteRepository.save(cliente);
+        registrarCambioEstado(cliente, estadoAnterior, cliente.getEstado(), "Eliminado por administrador");
         eventProducer.publicarClienteDesactivado(id);
     }
 
@@ -410,5 +425,21 @@ public class ClienteServiceImpl implements ClienteService {
                 .observaciones(kyc.getObservaciones())
                 .fechaCreacion(kyc.getFechaCreacion() != null ? kyc.getFechaCreacion().toString() : null)
                 .build();
+    }
+
+    private void registrarCambioEstado(Cliente cliente, EstadoCliente estadoAnterior, EstadoCliente estadoNuevo, String motivo) {
+        AuditoriaEstadoCliente auditoria = new AuditoriaEstadoCliente();
+        auditoria.setIdCliente(cliente.getId());
+        auditoria.setEstadoAnterior(estadoAnterior.name());
+        auditoria.setEstadoNuevo(estadoNuevo.name());
+        auditoria.setMotivo(motivo);
+        auditoria.setIpOrigen(null);
+        auditoria.setUserAgent(null);
+        auditoria.setDispositivo(null);
+        auditoria.setFechaCambio(LocalDateTime.now());
+        auditoria.setCreadoPor("system");
+        auditoria.setActualizadoPor("system");
+        auditoria.setVersion(0L);
+        auditoriaEstadoClienteRepository.save(auditoria);
     }
 }

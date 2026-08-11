@@ -28,6 +28,8 @@ Documentación generada a partir de las migraciones Flyway y de la inspección d
 | `roles` | 5 |
 | `permisos` | 9 |
 | `rol_permisos` | 21 |
+| `auditoria_passwords` | 0 |
+| `auditoria_estados_usuario` | 0 |
 
 ### customer-service (`fincore_customers`)
 | Tabla | Registros |
@@ -37,6 +39,7 @@ Documentación generada a partir de las migraciones Flyway y de la inspección d
 | `direcciones` | 4 |
 | `contactos_emergencia` | 4 |
 | `kyc_verificaciones` | 4 |
+| `auditoria_estados_cliente` | 0 |
 
 ### account-service (`fincore_accounts`)
 | Tabla | Registros |
@@ -46,6 +49,7 @@ Documentación generada a partir de las migraciones Flyway y de la inspección d
 | `saldos_historicos` | 0 |
 | `limites_transaccion` | 2 |
 | `beneficiarios_frecuentes` | 4 |
+| `auditoria_estados_cuenta` | 0 |
 
 ### transfer-service (`fincore_transfers`)
 | Tabla | Registros |
@@ -54,6 +58,7 @@ Documentación generada a partir de las migraciones Flyway y de la inspección d
 | `transferencia_estados` | 0 |
 | `saga_log` | 0 |
 | `compensating_transactions_log` | 0 |
+| `auditoria_transferencias` | 0 |
 
 ### ledger-service (`fincore_ledger`)
 | Tabla | Registros |
@@ -81,6 +86,7 @@ Documentación generada a partir de las migraciones Flyway y de la inspección d
 |------|-----------|
 | `usuarios_sistema` | 1 |
 | `auditorias_sistema` | 0 |
+| `auditoria_cambios_backoffice` | 0 |
 | `configuracion_fraude` | 0 |
 
 ### batch-service (`fincore_batch`)
@@ -152,6 +158,35 @@ erDiagram
         timestamp fecha_expiracion
         timestamp fecha_actualizacion
         boolean es_activa
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_passwords {
+        bigserial id PK
+        bigint id_usuario FK
+        varchar(255) password_hash_anterior
+        varchar(255) password_hash_nuevo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_estados_usuario {
+        bigserial id PK
+        bigint id_usuario FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
         varchar(100) creado_por
         varchar(100) actualizado_por
         bigint version
@@ -247,6 +282,21 @@ erDiagram
         timestamp fecha_actualizacion
     }
 
+    auditoria_estados_cliente {
+        bigserial id PK
+        bigint id_cliente FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
     %% ============================================
     %% ACCOUNT SERVICE
     %% ============================================
@@ -318,6 +368,21 @@ erDiagram
         timestamp fecha_actualizacion
     }
 
+    auditoria_estados_cuenta {
+        bigserial id PK
+        bigint id_cuenta FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
     %% ============================================
     %% TRANSFER SERVICE
     %% ============================================
@@ -383,6 +448,25 @@ erDiagram
         text detalle
         text error_detalle
         timestamp fecha_ejecucion
+    }
+
+    auditoria_transferencias {
+        bigserial id PK
+        bigint id_transferencia FK
+        varchar(50) accion
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        varchar(20) resultado
+        text detalle
+        text error_detalle
+        varchar(100) id_usuario
+        varchar(45) ip_origen
+        varchar(255) dispositivo
+        varchar(100) trace_id
+        timestamp fecha_accion
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
     }
 
     %% ============================================
@@ -549,6 +633,23 @@ erDiagram
         timestamp fecha_actualizacion
     }
 
+    auditoria_cambios_backoffice {
+        bigserial id PK
+        bigint id_usuario_sistema FK
+        varchar(50) entidad
+        varchar(100) id_entidad
+        varchar(100) accion
+        jsonb valores_anteriores
+        jsonb valores_nuevos
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
     %% ============================================
     %% BATCH SERVICE
     %% ============================================
@@ -618,6 +719,8 @@ erDiagram
     %% ============================================
     usuarios ||--o{ refresh_tokens : "tiene"
     usuarios ||--o{ sesiones_activas : "tiene"
+    usuarios ||--o{ auditoria_passwords : "tiene"
+    usuarios ||--o{ auditoria_estados_usuario : "tiene"
     roles ||--o{ rol_permisos : "tiene"
     permisos ||--o{ rol_permisos : "tiene"
 
@@ -625,19 +728,23 @@ erDiagram
     clientes ||--o{ direcciones : "tiene"
     clientes ||--o{ contactos_emergencia : "tiene"
     clientes ||--o{ kyc_verificaciones : "tiene"
+    clientes ||--o{ auditoria_estados_cliente : "tiene"
 
     tipos_cuenta ||--o{ cuentas : "tiene"
     cuentas ||--o{ saldos_historicos : "tiene"
     cuentas ||--o{ limites_transaccion : "tiene"
     cuentas ||--o{ beneficiarios_frecuentes : "beneficiario"
+    cuentas ||--o{ auditoria_estados_cuenta : "tiene"
 
     transferencias ||--o{ transferencia_estados : "tiene"
     transferencias ||--o{ saga_log : "tiene"
     transferencias ||--o{ compensating_transactions_log : "tiene"
+    transferencias ||--o{ auditoria_transferencias : "tiene"
     transferencias ||--o{ notificaciones : "genera"
 
     asientos_contables ||--o{ lineas_asiento : "tiene"
     plan_cuentas ||--o{ lineas_asiento : "tiene"
+    usuarios_sistema ||--o{ auditoria_cambios_backoffice : "tiene"
 ```
 
 ## Relaciones cruzadas entre microservicios
@@ -659,7 +766,8 @@ erDiagram
 ## Observaciones importantes
 
 - La BD `fincore_notifications` ya existe y la tabla `notificaciones` está creada con su migración V1 aplicada.
+- Se agregaron tablas de auditoría especializadas: `auditoria_passwords`, `auditoria_estados_usuario`, `auditoria_estados_cliente`, `auditoria_estados_cuenta`, `auditoria_transferencias` y `auditoria_cambios_backoffice`.
 - `clientes` está repetido 2 veces en `fincore_customers` según la consulta de tablas; revisar si es un dato duplicado o una vista/materialized view.
-- En `auth-service`, `usuarios.estado` tiene constraint viejo sin `ELIMINADO`; en `backoffice-service` agregamos ese estado nuevo.
+- En `auth-service`, `usuarios.estado` ahora incluye `ELIMINADO` en su constraint.
 - El diagrama es orientado a tablas y relaciones DDL reales; no incluye aún las tablas del gateway porque usa `localhost:8080` y no corría al momento de la inspección.
 - Algunas relaciones son lógicas por `id` o `trace_id` porque cada microservicio tiene su propia BD; no hay FK físicas entre servicios.

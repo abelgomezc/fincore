@@ -8,6 +8,8 @@ import com.fincore.transfer.entity.TransferenciaEstado;
 import com.fincore.transfer.enums.EstadoTransferencia;
 import com.fincore.transfer.repository.TransferenciaEstadoRepository;
 import com.fincore.transfer.repository.TransferenciaRepository;
+import com.fincore.transfer.repository.AuditoriaTransferenciaRepository;
+import com.fincore.transfer.entity.AuditoriaTransferencia;
 import com.fincore.transfer.saga.SagaOrchestrator;
 import com.fincore.transfer.saga.SagaResult;
 import com.fincore.transfer.websocket.WebSocketService;
@@ -42,17 +44,20 @@ public class TransferenciaServiceImpl implements TransferenciaService {
     private final NumeradorService numeradorService;
     private final SagaOrchestrator sagaOrchestrator;
     private final WebSocketService webSocketService;
+    private final AuditoriaTransferenciaRepository auditoriaTransferenciaRepository;
 
     public TransferenciaServiceImpl(TransferenciaRepository transferenciaRepository,
                                     TransferenciaEstadoRepository estadoRepository,
                                     NumeradorService numeradorService,
                                     SagaOrchestrator sagaOrchestrator,
-                                    WebSocketService webSocketService) {
+                                    WebSocketService webSocketService,
+                                    AuditoriaTransferenciaRepository auditoriaTransferenciaRepository) {
         this.transferenciaRepository = transferenciaRepository;
         this.estadoRepository = estadoRepository;
         this.numeradorService = numeradorService;
         this.sagaOrchestrator = sagaOrchestrator;
         this.webSocketService = webSocketService;
+        this.auditoriaTransferenciaRepository = auditoriaTransferenciaRepository;
     }
 
     @Override
@@ -175,6 +180,7 @@ public class TransferenciaServiceImpl implements TransferenciaService {
             webSocketService.notificarError(transferencia, "Transferencia revertida manualmente: " + motivo);
         });
 
+        EstadoTransferencia estadoAnterior = transferencia.getEstado();
         transferencia.setEstado(EstadoTransferencia.REVERTIDA);
         transferencia.setFechaRevertida(LocalDateTime.now());
         transferencia.setMotivoRechazo(motivo);
@@ -189,6 +195,8 @@ public class TransferenciaServiceImpl implements TransferenciaService {
         estado.setDescripcion("Reversionada manualmente: " + motivo);
         estado.setFechaCambio(LocalDateTime.now());
         estadoRepository.save(estado);
+
+        registrarAuditoria(transferencia, "REVERTIR", estadoAnterior, transferencia.getEstado(), "EXITOSO", motivo, null, transferencia.getIdUsuario(), transferencia.getIpOrigen(), transferencia.getDispositivo(), transferencia.getTraceId());
 
         return convertToResponse(transferencia);
     }
@@ -236,5 +244,25 @@ public class TransferenciaServiceImpl implements TransferenciaService {
         response.setMotivoRechazo(t.getMotivoRechazo());
         response.setHistorialEstados(historial);
         return response;
+    }
+
+    private void registrarAuditoria(Transferencia transferencia, String accion, EstadoTransferencia estadoAnterior, EstadoTransferencia estadoNuevo, String resultado, String detalle, String errorDetalle, String idUsuario, String ipOrigen, String dispositivo, String traceId) {
+        AuditoriaTransferencia auditoria = new AuditoriaTransferencia();
+        auditoria.setIdTransferencia(transferencia.getId());
+        auditoria.setAccion(accion);
+        auditoria.setEstadoAnterior(estadoAnterior != null ? estadoAnterior.name() : null);
+        auditoria.setEstadoNuevo(estadoNuevo != null ? estadoNuevo.name() : null);
+        auditoria.setResultado(resultado);
+        auditoria.setDetalle(detalle);
+        auditoria.setErrorDetalle(errorDetalle);
+        auditoria.setIdUsuario(idUsuario);
+        auditoria.setIpOrigen(ipOrigen);
+        auditoria.setDispositivo(dispositivo);
+        auditoria.setTraceId(traceId);
+        auditoria.setFechaAccion(LocalDateTime.now());
+        auditoria.setCreadoPor("system");
+        auditoria.setActualizadoPor("system");
+        auditoria.setVersion(0L);
+        auditoriaTransferenciaRepository.save(auditoria);
     }
 }

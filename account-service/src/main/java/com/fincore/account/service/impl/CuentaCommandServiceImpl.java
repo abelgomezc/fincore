@@ -13,6 +13,8 @@ import com.fincore.account.exception.CuentaNoEncontradaException;
 import com.fincore.account.kafka.AccountEventProducer;
 import com.fincore.account.repository.CuentaRepository;
 import com.fincore.account.repository.TipoCuentaRepository;
+import com.fincore.account.repository.AuditoriaEstadoCuentaRepository;
+import com.fincore.account.entity.AuditoriaEstadoCuenta;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -39,16 +41,19 @@ public class CuentaCommandServiceImpl implements CuentaCommandService {
     private final CuentaRepository cuentaRepository;
     private final TipoCuentaRepository tipoCuentaRepository;
     private final AccountEventProducer eventProducer;
+    private final AuditoriaEstadoCuentaRepository auditoriaEstadoCuentaRepository;
 
     @Value("${banking.account.number.prefix:2026}")
     private String accountNumberPrefix;
 
     public CuentaCommandServiceImpl(CuentaRepository cuentaRepository,
                                     TipoCuentaRepository tipoCuentaRepository,
-                                    AccountEventProducer eventProducer) {
+                                    AccountEventProducer eventProducer,
+                                    AuditoriaEstadoCuentaRepository auditoriaEstadoCuentaRepository) {
         this.cuentaRepository = cuentaRepository;
         this.tipoCuentaRepository = tipoCuentaRepository;
         this.eventProducer = eventProducer;
+        this.auditoriaEstadoCuentaRepository = auditoriaEstadoCuentaRepository;
     }
 
     @Override
@@ -88,10 +93,12 @@ public class CuentaCommandServiceImpl implements CuentaCommandService {
         Cuenta cuenta = cuentaRepository.findById(command.getIdCuenta())
                 .orElseThrow(() -> new CuentaNoEncontradaException("Cuenta no encontrada: " + command.getIdCuenta()));
 
+        EstadoCuenta estadoAnterior = cuenta.getEstado();
         cuenta.setEstado(EstadoCuenta.BLOQUEADA);
         cuenta.setMotivoBloqueo(command.getMotivoBloqueo());
 
         Cuenta saved = cuentaRepository.save(cuenta);
+        registrarCambioEstado(saved, estadoAnterior, saved.getEstado(), command.getMotivoBloqueo());
         eventProducer.publicarCuentaBloqueada(saved.getId(), saved.getNumeroCuenta(), command.getMotivoBloqueo());
 
         return saved;
@@ -220,5 +227,21 @@ public class CuentaCommandServiceImpl implements CuentaCommandService {
     private String generarNumeroCuenta() {
         long random = ThreadLocalRandom.current().nextLong(1000000000L, 9999999999L);
         return accountNumberPrefix + random;
+    }
+
+    private void registrarCambioEstado(Cuenta cuenta, EstadoCuenta estadoAnterior, EstadoCuenta estadoNuevo, String motivo) {
+        AuditoriaEstadoCuenta auditoria = new AuditoriaEstadoCuenta();
+        auditoria.setIdCuenta(cuenta.getId());
+        auditoria.setEstadoAnterior(estadoAnterior.name());
+        auditoria.setEstadoNuevo(estadoNuevo.name());
+        auditoria.setMotivo(motivo);
+        auditoria.setIpOrigen(null);
+        auditoria.setUserAgent(null);
+        auditoria.setDispositivo(null);
+        auditoria.setFechaCambio(LocalDateTime.now());
+        auditoria.setCreadoPor("system");
+        auditoria.setActualizadoPor("system");
+        auditoria.setVersion(0L);
+        auditoriaEstadoCuentaRepository.save(auditoria);
     }
 }

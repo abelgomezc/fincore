@@ -167,6 +167,35 @@ erDiagram
         bigint version
     }
 
+    auditoria_passwords {
+        bigserial id PK
+        bigint id_usuario FK
+        varchar(255) password_hash_anterior
+        varchar(255) password_hash_nuevo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_estados_usuario {
+        bigserial id PK
+        bigint id_usuario FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
     roles {
         bigserial id PK
         varchar(50) nombre UK
@@ -257,6 +286,21 @@ erDiagram
         timestamp fecha_actualizacion
     }
 
+    auditoria_estados_cliente {
+        bigserial id PK
+        bigint id_cliente FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
     %% ============================================
     %% ACCOUNT SERVICE
     %% ============================================
@@ -328,6 +372,21 @@ erDiagram
         timestamp fecha_actualizacion
     }
 
+    auditoria_estados_cuenta {
+        bigserial id PK
+        bigint id_cuenta FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
     %% ============================================
     %% TRANSFER SERVICE
     %% ============================================
@@ -393,6 +452,25 @@ erDiagram
         text detalle
         text error_detalle
         timestamp fecha_ejecucion
+    }
+
+    auditoria_transferencias {
+        bigserial id PK
+        bigint id_transferencia FK
+        varchar(50) accion
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        varchar(20) resultado
+        text detalle
+        text error_detalle
+        varchar(100) id_usuario
+        varchar(45) ip_origen
+        varchar(255) dispositivo
+        varchar(100) trace_id
+        timestamp fecha_accion
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
     }
 
     %% ============================================
@@ -559,6 +637,23 @@ erDiagram
         timestamp fecha_actualizacion
     }
 
+    auditoria_cambios_backoffice {
+        bigserial id PK
+        bigint id_usuario_sistema FK
+        varchar(50) entidad
+        varchar(100) id_entidad
+        varchar(100) accion
+        jsonb valores_anteriores
+        jsonb valores_nuevos
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
     %% ============================================
     %% BATCH SERVICE
     %% ============================================
@@ -609,6 +704,8 @@ erDiagram
     %% ============================================
     usuarios ||--o{ refresh_tokens : "tiene"
     usuarios ||--o{ sesiones_activas : "tiene"
+    usuarios ||--o{ auditoria_passwords : "tiene"
+    usuarios ||--o{ auditoria_estados_usuario : "tiene"
     roles ||--o{ rol_permisos : "tiene"
     permisos ||--o{ rol_permisos : "tiene"
 
@@ -616,19 +713,23 @@ erDiagram
     clientes ||--o{ direcciones : "tiene"
     clientes ||--o{ contactos_emergencia : "tiene"
     clientes ||--o{ kyc_verificaciones : "tiene"
+    clientes ||--o{ auditoria_estados_cliente : "tiene"
 
     tipos_cuenta ||--o{ cuentas : "tiene"
     cuentas ||--o{ saldos_historicos : "tiene"
     cuentas ||--o{ limites_transaccion : "tiene"
     cuentas ||--o{ beneficiarios_frecuentes : "beneficiario"
+    cuentas ||--o{ auditoria_estados_cuenta : "tiene"
 
     transferencias ||--o{ transferencia_estados : "tiene"
     transferencias ||--o{ saga_log : "tiene"
     transferencias ||--o{ compensating_transactions_log : "tiene"
+    transferencias ||--o{ auditoria_transferencias : "tiene"
     transferencias ||--o{ notificaciones : "genera"
 
     asientos_contables ||--o{ lineas_asiento : "tiene"
     plan_cuentas ||--o{ lineas_asiento : "tiene"
+    usuarios_sistema ||--o{ auditoria_cambios_backoffice : "tiene"
 ```
 
 ## 🛠️ Stack Tecnológico

@@ -16,6 +16,8 @@ import com.fincore.auth.exception.CredencialesInvalidasException;
 import com.fincore.auth.exception.RefreshTokenInvalidoException;
 import com.fincore.auth.repository.RefreshTokenRepository;
 import com.fincore.auth.repository.UsuarioRepository;
+import com.fincore.auth.repository.AuditoriaEstadoUsuarioRepository;
+import com.fincore.auth.entity.AuditoriaEstadoUsuario;
 import com.fincore.auth.service.impl.JwtServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +54,7 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtServiceImpl jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final AuditoriaEstadoUsuarioRepository auditoriaEstadoUsuarioRepository;
 
     @Value("${auth.max.failed.attempts:5}")
     private int maxFailedAttempts;
@@ -65,11 +68,13 @@ public class AuthServiceImpl implements AuthService {
     public AuthServiceImpl(UsuarioRepository usuarioRepository,
                            RefreshTokenRepository refreshTokenRepository,
                            JwtServiceImpl jwtService,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           AuditoriaEstadoUsuarioRepository auditoriaEstadoUsuarioRepository) {
         this.usuarioRepository = usuarioRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.auditoriaEstadoUsuarioRepository = auditoriaEstadoUsuarioRepository;
     }
 
     @Override
@@ -293,9 +298,11 @@ public class AuthServiceImpl implements AuthService {
     public void bloquearUsuario(Long userId, String motivo) {
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + userId));
+        EstadoUsuario estadoAnterior = usuario.getEstado();
         usuario.setEstado(EstadoUsuario.BLOQUEADO);
         usuario.setFechaBloqueo(LocalDateTime.now());
         usuarioRepository.save(usuario);
+        registrarCambioEstado(usuario, estadoAnterior, usuario.getEstado(), motivo);
         log.info("Usuario bloqueado: {} por motivo: {}", usuario.getEmail(), motivo);
     }
 
@@ -303,10 +310,12 @@ public class AuthServiceImpl implements AuthService {
     public void desbloquearUsuario(Long userId) {
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + userId));
+        EstadoUsuario estadoAnterior = usuario.getEstado();
         usuario.setEstado(EstadoUsuario.ACTIVO);
         usuario.setFechaBloqueo(null);
         usuario.resetearIntentosFallidos();
         usuarioRepository.save(usuario);
+        registrarCambioEstado(usuario, estadoAnterior, usuario.getEstado(), null);
         log.info("Usuario desbloqueado: {}", usuario.getEmail());
     }
 
@@ -314,8 +323,10 @@ public class AuthServiceImpl implements AuthService {
     public void suspenderUsuario(Long userId, String motivo) {
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + userId));
+        EstadoUsuario estadoAnterior = usuario.getEstado();
         usuario.setEstado(EstadoUsuario.SUSPENDIDO);
         usuarioRepository.save(usuario);
+        registrarCambioEstado(usuario, estadoAnterior, usuario.getEstado(), motivo);
         log.info("Usuario suspendido: {} por motivo: {}", usuario.getEmail(), motivo);
     }
 
@@ -326,10 +337,12 @@ public class AuthServiceImpl implements AuthService {
         if (usuario.getEstado() == EstadoUsuario.ELIMINADO) {
             throw new IllegalArgumentException("No se puede reactivar un usuario eliminado");
         }
+        EstadoUsuario estadoAnterior = usuario.getEstado();
         usuario.setEstado(EstadoUsuario.ACTIVO);
         usuario.setFechaBloqueo(null);
         usuario.resetearIntentosFallidos();
         usuarioRepository.save(usuario);
+        registrarCambioEstado(usuario, estadoAnterior, usuario.getEstado(), null);
         log.info("Usuario reactivado: {}", usuario.getEmail());
     }
 
@@ -337,8 +350,10 @@ public class AuthServiceImpl implements AuthService {
     public void eliminarUsuario(Long userId) {
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + userId));
+        EstadoUsuario estadoAnterior = usuario.getEstado();
         usuario.setEstado(EstadoUsuario.ELIMINADO);
         usuarioRepository.save(usuario);
+        registrarCambioEstado(usuario, estadoAnterior, usuario.getEstado(), "Eliminado por administrador");
         log.info("Usuario eliminado: {}", usuario.getEmail());
     }
 
@@ -382,5 +397,21 @@ public class AuthServiceImpl implements AuthService {
         // Se persiste en BD para auditoría (no se usa repositorio de SesionActiva
         // ya que se maneja en Redis; aquí se guarda como registro histórico)
         log.debug("Sesión registrada: userId={}, sessionId={}", usuario.getId(), sessionId);
+    }
+
+    private void registrarCambioEstado(Usuario usuario, EstadoUsuario estadoAnterior, EstadoUsuario estadoNuevo, String motivo) {
+        AuditoriaEstadoUsuario auditoria = new AuditoriaEstadoUsuario();
+        auditoria.setIdUsuario(usuario.getId());
+        auditoria.setEstadoAnterior(estadoAnterior.name());
+        auditoria.setEstadoNuevo(estadoNuevo.name());
+        auditoria.setMotivo(motivo);
+        auditoria.setIpOrigen(null);
+        auditoria.setUserAgent(null);
+        auditoria.setDispositivo(null);
+        auditoria.setFechaCambio(LocalDateTime.now());
+        auditoria.setCreadoPor("system");
+        auditoria.setActualizadoPor("system");
+        auditoria.setVersion(0L);
+        auditoriaEstadoUsuarioRepository.save(auditoria);
     }
 }
