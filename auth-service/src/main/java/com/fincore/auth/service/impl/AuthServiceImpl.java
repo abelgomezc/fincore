@@ -4,6 +4,7 @@ import com.fincore.auth.dto.request.LoginRequest;
 import com.fincore.auth.dto.request.RefreshRequest;
 import com.fincore.auth.dto.request.RegisterRequest;
 import com.fincore.auth.dto.response.AuthResponse;
+import com.fincore.auth.dto.response.AuditoriaResponse;
 import com.fincore.auth.dto.response.UsuarioResponse;
 import com.fincore.auth.entity.RefreshToken;
 import com.fincore.auth.entity.SesionActiva;
@@ -17,7 +18,9 @@ import com.fincore.auth.exception.RefreshTokenInvalidoException;
 import com.fincore.auth.repository.RefreshTokenRepository;
 import com.fincore.auth.repository.UsuarioRepository;
 import com.fincore.auth.repository.AuditoriaEstadoUsuarioRepository;
+import com.fincore.auth.repository.AuditoriaPasswordRepository;
 import com.fincore.auth.entity.AuditoriaEstadoUsuario;
+import com.fincore.auth.entity.AuditoriaPassword;
 import com.fincore.auth.service.impl.JwtServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,6 +58,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtServiceImpl jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuditoriaEstadoUsuarioRepository auditoriaEstadoUsuarioRepository;
+    private final AuditoriaPasswordRepository auditoriaPasswordRepository;
 
     @Value("${auth.max.failed.attempts:5}")
     private int maxFailedAttempts;
@@ -69,12 +73,14 @@ public class AuthServiceImpl implements AuthService {
                            RefreshTokenRepository refreshTokenRepository,
                            JwtServiceImpl jwtService,
                            PasswordEncoder passwordEncoder,
-                           AuditoriaEstadoUsuarioRepository auditoriaEstadoUsuarioRepository) {
+                           AuditoriaEstadoUsuarioRepository auditoriaEstadoUsuarioRepository,
+                           AuditoriaPasswordRepository auditoriaPasswordRepository) {
         this.usuarioRepository = usuarioRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.auditoriaEstadoUsuarioRepository = auditoriaEstadoUsuarioRepository;
+        this.auditoriaPasswordRepository = auditoriaPasswordRepository;
     }
 
     @Override
@@ -103,6 +109,12 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordEncoder.matches(request.getPassword(), usuario.getPasswordHash())) {
             usuario.registrarIntentoFallido(maxFailedAttempts);
             usuarioRepository.save(usuario);
+
+            if (usuario.isBloqueado()) {
+                registrarCambioEstado(usuario, EstadoUsuario.ACTIVO, EstadoUsuario.BLOQUEADO,
+                        "Bloqueo automático por superar intentos fallidos");
+            }
+
             log.warn("Credenciales inválidas para: {}", request.getEmail());
             throw new CredencialesInvalidasException("Credenciales inválidas");
         }
@@ -170,6 +182,8 @@ public class AuthServiceImpl implements AuthService {
         usuario.setIntentosFallidos(0);
 
         usuario = usuarioRepository.save(usuario);
+
+        registrarCambioEstado(usuario, null, usuario.getEstado(), "Usuario creado desde registro");
 
         String sessionId = UUID.randomUUID().toString().replace("-", "");
         String accessToken = jwtService.generarAccessToken(usuario, sessionId, request.getDeviceId());
@@ -242,6 +256,8 @@ public class AuthServiceImpl implements AuthService {
         // Registrar nueva sesión
         registrarSesion(usuario, sessionId, request.getDeviceId(), null, null);
 
+        registrarCambioEstado(usuario, EstadoUsuario.ACTIVO, EstadoUsuario.ACTIVO, "Refresh token exitoso");
+
         log.info("Refresh token exitoso para usuario: {}", usuario.getEmail());
 
         return AuthResponse.builder()
@@ -269,6 +285,10 @@ public class AuthServiceImpl implements AuthService {
     public void logoutAllSessions(Long userId) {
         log.info("Logout de todas las sesiones para userId: {}", userId);
         refreshTokenRepository.revocarTokensActivos(userId, LocalDateTime.now());
+
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + userId));
+        registrarCambioEstado(usuario, EstadoUsuario.ACTIVO, EstadoUsuario.ACTIVO, "Logout de todas las sesiones");
     }
 
     @Override
@@ -276,6 +296,8 @@ public class AuthServiceImpl implements AuthService {
     public UsuarioResponse obtenerUsuarioPorEmail(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + email));
+
+        registrarCambioEstado(usuario, EstadoUsuario.ACTIVO, usuario.getEstado(), "Consulta de usuario por email");
 
         return UsuarioResponse.builder()
                 .id(usuario.getId())
@@ -358,6 +380,36 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public void cambiarPassword(Long userId, String passwordActual, String passwordNuevo, String comentario) {
+        Usuario usuario = usuarioRepository.findById(userId)
+                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado: " + userId));
+
+        if (!passwordEncoder.matches(passwordActual, usuario.getPasswordHash())) {
+            throw new CredencialesInvalidasException("Contraseña actual incorrecta");
+        }
+
+        String passwordHashAnterior = usuario.getPasswordHash();
+        usuario.setPasswordHash(passwordEncoder.encode(passwordNuevo));
+        usuarioRepository.save(usuario);
+
+        AuditoriaPassword auditoria = new AuditoriaPassword();
+        auditoria.setIdUsuario(usuario.getId());
+        auditoria.setPasswordHashAnterior(passwordHashAnterior);
+        auditoria.setPasswordHashNuevo(usuario.getPasswordHash());
+        auditoria.setIpOrigen(null);
+        auditoria.setUserAgent(null);
+        auditoria.setDispositivo(null);
+        auditoria.setMotivo(comentario != null ? comentario : "Cambio voluntario desde frontend");
+        auditoria.setFechaCambio(LocalDateTime.now());
+        auditoria.setCreadoPor("system");
+        auditoria.setActualizadoPor("system");
+        auditoria.setVersion(0L);
+        auditoriaPasswordRepository.save(auditoria);
+
+        log.info("Contraseña cambiada para usuario: {}", usuario.getEmail());
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<UsuarioResponse> listarUsuarios() {
         return usuarioRepository.findAll().stream()
@@ -377,6 +429,56 @@ public class AuthServiceImpl implements AuthService {
                         .fechaActualizacion(usuario.getFechaActualizacion() != null ? usuario.getFechaActualizacion().toString() : null)
                         .build())
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AuditoriaResponse> consultarAuditoriaUsuario(Long userId) {
+        List<AuditoriaResponse> auditoria = new java.util.ArrayList<>();
+
+        auditoriaEstadoUsuarioRepository.findByIdUsuarioOrderByFechaCambioDesc(userId).forEach(a -> {
+            auditoria.add(AuditoriaResponse.builder()
+                    .id(a.getId())
+                    .entidad("USUARIO")
+                    .idEntidad(userId.toString())
+                    .accion("CAMBIO_ESTADO")
+                    .estadoAnterior(a.getEstadoAnterior())
+                    .estadoNuevo(a.getEstadoNuevo())
+                    .motivo(a.getMotivo())
+                    .ipOrigen(a.getIpOrigen())
+                    .userAgent(a.getUserAgent())
+                    .dispositivo(a.getDispositivo())
+                    .fechaCambio(a.getFechaCambio())
+                    .creadoPor(a.getCreadoPor())
+                    .build());
+        });
+
+        return auditoria;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AuditoriaResponse> consultarAuditoriaPasswords(Long userId) {
+        List<AuditoriaResponse> auditoria = new java.util.ArrayList<>();
+
+        auditoriaPasswordRepository.findByIdUsuarioOrderByFechaCambioDesc(userId).forEach(a -> {
+            auditoria.add(AuditoriaResponse.builder()
+                    .id(a.getId())
+                    .entidad("USUARIO_PASSWORD")
+                    .idEntidad(userId.toString())
+                    .accion("CAMBIO_PASSWORD")
+                    .estadoAnterior(a.getPasswordHashAnterior())
+                    .estadoNuevo(a.getPasswordHashNuevo())
+                    .motivo(a.getMotivo())
+                    .ipOrigen(a.getIpOrigen())
+                    .userAgent(a.getUserAgent())
+                    .dispositivo(a.getDispositivo())
+                    .fechaCambio(a.getFechaCambio())
+                    .creadoPor(a.getCreadoPor())
+                    .build());
+        });
+
+        return auditoria;
     }
 
     private void registrarSesion(Usuario usuario, String sessionId, String deviceId,

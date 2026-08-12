@@ -767,7 +767,9 @@ erDiagram
 
 - La BD `fincore_notifications` ya existe y la tabla `notificaciones` está creada con su migración V1 aplicada.
 - Se agregaron tablas de auditoría especializadas: `auditoria_passwords`, `auditoria_estados_usuario`, `auditoria_estados_cliente`, `auditoria_estados_cuenta`, `auditoria_transferencias` y `auditoria_cambios_backoffice`.
+- Las tablas de auditoría usan `TEXT` para campos de comentario largo (`motivo`, `detalle`, `comentario`).
 - `clientes` está repetido 2 veces en `fincore_customers` según la consulta de tablas; revisar si es un dato duplicado o una vista/materialized view.
 - En `auth-service`, `usuarios.estado` ahora incluye `ELIMINADO` en su constraint.
 - El diagrama es orientado a tablas y relaciones DDL reales; no incluye aún las tablas del gateway porque usa `localhost:8080` y no corría al momento de la inspección.
 - Algunas relaciones son lógicas por `id` o `trace_id` porque cada microservicio tiene su propia BD; no hay FK físicas entre servicios.
+- La auditoría puede consultarse desde el frontend en el backoffice mediante el modal de auditoría con pestañas para estados y contraseñas.

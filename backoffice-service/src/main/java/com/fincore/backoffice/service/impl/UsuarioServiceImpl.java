@@ -103,6 +103,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .orElse(false);
     }
 
+    @Override
+    public List<AuditoriaCambioBackoffice> consultarAuditoria(Long id) {
+        return auditoriaRepository.findByIdUsuarioSistemaOrderByFechaCambioDesc(id);
+    }
+
     private void registrarCambio(UsuarioSistema usuario, String accion, EstadoUsuarioSistema estadoAnterior, EstadoUsuarioSistema estadoNuevo, EstadoUsuarioSistema estadoAnteriorAudit, EstadoUsuarioSistema estadoNuevoAudit) {
         AuditoriaCambioBackoffice auditoria = new AuditoriaCambioBackoffice();
         auditoria.setIdUsuarioSistema(usuario.getId());

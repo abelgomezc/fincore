@@ -2,8 +2,10 @@ package com.fincore.customer.controller;
 
 import com.fincore.customer.dto.request.ActualizarClienteRequest;
 import com.fincore.customer.dto.request.CrearClienteRequest;
+import com.fincore.customer.dto.request.ActualizarClienteRequest;
 import com.fincore.customer.dto.response.ClienteResponse;
 import com.fincore.customer.dto.response.KycResponse;
+import com.fincore.customer.entity.AuditoriaEstadoCliente;
 import com.fincore.customer.enums.EstadoKyc;
 import com.fincore.customer.service.ClienteService;
 import jakarta.validation.Valid;
@@ -126,34 +128,10 @@ public class ClienteController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarCliente(@PathVariable Long id) {
-        log.info("DELETE /api/clientes/{}", id);
-        clienteService.eliminarCliente(id);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/{id}/kyc")
-    public ResponseEntity<KycResponse> obtenerKyc(@PathVariable Long id) {
-        log.info("GET /api/clientes/{}/kyc", id);
-        KycResponse response = clienteService.obtenerKyc(id);
-        return ResponseEntity.ok(response);
-    }
-
-    @PutMapping("/{id}/kyc")
-    public ResponseEntity<KycResponse> actualizarKyc(
-            @PathVariable Long id,
-            @RequestParam EstadoKyc estado,
-            @RequestParam(required = false) String observaciones) {
-        log.info("PUT /api/clientes/{}/kyc — estado: {}", id, estado);
-        KycResponse response = clienteService.actualizarKyc(id, estado, observaciones);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/validar-cedula/{cedula}")
-    public ResponseEntity<Boolean> validarCedula(@PathVariable String cedula) {
-        log.info("GET /api/clientes/validar-cedula/{}", cedula);
-        boolean valido = clienteService.validarCedula(cedula);
-        return ResponseEntity.ok(valido);
+    @GetMapping("/{id}/auditoria")
+    public ResponseEntity<List<AuditoriaEstadoCliente>> consultarAuditoria(@PathVariable Long id) {
+        log.info("GET /api/clientes/{}/auditoria", id);
+        List<AuditoriaEstadoCliente> auditoria = clienteService.consultarAuditoria(id);
+        return ResponseEntity.ok(auditoria);
     }
 }

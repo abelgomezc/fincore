@@ -4,6 +4,8 @@ import com.fincore.backoffice.entity.AuditoriaCambioBackoffice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Repositorio de auditoría de cambios administrativos.
  *
@@ -11,4 +13,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface AuditoriaCambioBackofficeRepository extends JpaRepository<AuditoriaCambioBackoffice, Long> {
+    List<AuditoriaCambioBackoffice> findByIdUsuarioSistemaOrderByFechaCambioDesc(Long idUsuarioSistema);
 }

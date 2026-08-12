@@ -1,6 +1,21 @@
 import apiClient from './axiosConfig';
 import { AuthResponse, LoginRequest, RegisterRequest, UsuarioBackoffice } from '@/types';
 
+export interface AuditoriaItem {
+  id: number;
+  entidad: string;
+  idEntidad: string;
+  accion: string;
+  estadoAnterior?: string;
+  estadoNuevo?: string;
+  motivo?: string;
+  ipOrigen?: string;
+  userAgent?: string;
+  dispositivo?: string;
+  fechaCambio?: string;
+  creadoPor?: string;
+}
+
 export const authApi = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>('/api/auth/login', credentials);
@@ -41,6 +56,24 @@ export const authApi = {
 
   eliminarUsuario: async (id: number): Promise<void> => {
     await apiClient.put(`/api/auth/usuario/${id}/eliminar`);
+  },
+
+  cambiarPassword: async (id: number, passwordActual: string, passwordNuevo: string, comentario?: string): Promise<void> => {
+    await apiClient.put(`/api/auth/usuario/${id}/password`, {
+      passwordActual,
+      passwordNuevo,
+      comentario,
+    });
+  },
+
+  consultarAuditoriaUsuario: async (userId: number): Promise<AuditoriaItem[]> => {
+    const response = await apiClient.get<AuditoriaItem[]>(`/api/auth/auditoria/${userId}`);
+    return response.data;
+  },
+
+  consultarAuditoriaPasswords: async (userId: number): Promise<AuditoriaItem[]> => {
+    const response = await apiClient.get<AuditoriaItem[]>(`/api/auth/auditoria/passwords/${userId}`);
+    return response.data;
   },
 };
 

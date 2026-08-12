@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -78,6 +80,8 @@ public class CuentaCommandServiceImpl implements CuentaCommandService {
         cuenta.setFechaApertura(LocalDate.now());
 
         Cuenta saved = cuentaRepository.save(cuenta);
+
+        registrarCambioEstado(saved, null, saved.getEstado(), "Apertura de cuenta");
 
         eventProducer.publicarCuentaCreada(saved.getId(), saved.getNumeroCuenta(), saved.getIdCliente());
         log.info("Cuenta creada: {} número {}", saved.getId(), saved.getNumeroCuenta());
@@ -227,6 +231,11 @@ public class CuentaCommandServiceImpl implements CuentaCommandService {
     private String generarNumeroCuenta() {
         long random = ThreadLocalRandom.current().nextLong(1000000000L, 9999999999L);
         return accountNumberPrefix + random;
+    }
+
+    @Override
+    public List<AuditoriaEstadoCuenta> consultarAuditoria(Long idCuenta) {
+        return auditoriaEstadoCuentaRepository.findByIdCuentaOrderByFechaCambioDesc(idCuenta);
     }
 
     private void registrarCambioEstado(Cuenta cuenta, EstadoCuenta estadoAnterior, EstadoCuenta estadoNuevo, String motivo) {

@@ -3,8 +3,10 @@ package com.fincore.auth.controller;
 import com.fincore.auth.dto.request.LoginRequest;
 import com.fincore.auth.dto.request.RefreshRequest;
 import com.fincore.auth.dto.request.RegisterRequest;
+import com.fincore.auth.dto.request.CambiarPasswordRequest;
 import com.fincore.auth.dto.response.AuthResponse;
 import com.fincore.auth.dto.response.UsuarioResponse;
+import com.fincore.auth.dto.response.AuditoriaResponse;
 import com.fincore.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +30,9 @@ import java.util.List;
  * - PUT /api/auth/usuario/{id}/suspender — suspender usuario (ADMIN)
  * - PUT /api/auth/usuario/{id}/reactivar — reactivar usuario (ADMIN)
  * - PUT /api/auth/usuario/{id}/eliminar — eliminar usuario (ADMIN)
+ * - PUT /api/auth/usuario/{id}/password — cambiar contraseña
  * - GET /api/auth/usuarios — listar todos los usuarios (ADMIN)
+ * - GET /api/auth/auditoria/{userId} — consultar auditoría de usuario
  *
  * © 2026 Abel Gomez. Todos los derechos reservados.
  */
@@ -94,6 +98,20 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/auditoria/{userId}")
+    public ResponseEntity<List<AuditoriaResponse>> consultarAuditoria(@PathVariable Long userId) {
+        log.info("GET /api/auth/auditoria/{}", userId);
+        List<AuditoriaResponse> response = authService.consultarAuditoriaUsuario(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/auditoria/passwords/{userId}")
+    public ResponseEntity<List<AuditoriaResponse>> consultarAuditoriaPasswords(@PathVariable Long userId) {
+        log.info("GET /api/auth/auditoria/passwords/{}", userId);
+        List<AuditoriaResponse> response = authService.consultarAuditoriaPasswords(userId);
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/usuario/{id}/bloquear")
     public ResponseEntity<Void> bloquearUsuario(@PathVariable Long id,
                                                  @RequestParam String motivo) {
@@ -111,7 +129,7 @@ public class AuthController {
 
     @PutMapping("/usuario/{id}/suspender")
     public ResponseEntity<Void> suspenderUsuario(@PathVariable Long id,
-                                                  @RequestParam String motivo) {
+                                                   @RequestParam String motivo) {
         log.info("PUT /api/auth/usuario/{}/suspender — motivo: {}", id, motivo);
         authService.suspenderUsuario(id, motivo);
         return ResponseEntity.ok().build();
@@ -128,6 +146,14 @@ public class AuthController {
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         log.info("PUT /api/auth/usuario/{}/eliminar", id);
         authService.eliminarUsuario(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/usuario/{id}/password")
+    public ResponseEntity<Void> cambiarPassword(@PathVariable Long id,
+                                                  @Valid @RequestBody CambiarPasswordRequest request) {
+        log.info("PUT /api/auth/usuario/{}/password", id);
+        authService.cambiarPassword(id, request.getPasswordActual(), request.getPasswordNuevo(), request.getComentario());
         return ResponseEntity.ok().build();
     }
 }

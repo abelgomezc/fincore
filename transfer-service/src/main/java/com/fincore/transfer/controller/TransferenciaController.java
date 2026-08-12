@@ -2,6 +2,7 @@ package com.fincore.transfer.controller;
 
 import com.fincore.transfer.dto.request.CrearTransferenciaRequest;
 import com.fincore.transfer.dto.response.TransferenciaResponse;
+import com.fincore.transfer.entity.AuditoriaTransferencia;
 import com.fincore.transfer.enums.EstadoTransferencia;
 import com.fincore.transfer.service.TransferenciaService;
 import jakarta.validation.Valid;
@@ -103,5 +104,12 @@ public class TransferenciaController {
         log.info("POST /api/v1/transferencias/{}/revertir: motivo={}", id, motivo);
         TransferenciaResponse response = transferenciaService.revertirTransferencia(id, motivo);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/auditoria")
+    public ResponseEntity<List<AuditoriaTransferencia>> consultarAuditoria(@PathVariable Long id) {
+        log.info("GET /api/v1/transferencias/{}/auditoria", id);
+        List<AuditoriaTransferencia> auditoria = transferenciaService.consultarAuditoria(id);
+        return ResponseEntity.ok(auditoria);
     }
 }

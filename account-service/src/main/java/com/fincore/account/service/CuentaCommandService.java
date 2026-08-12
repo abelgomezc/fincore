@@ -5,7 +5,10 @@ import com.fincore.account.command.ActualizarSaldoCommand;
 import com.fincore.account.command.BloquearCuentaCommand;
 import com.fincore.account.command.LiberarReservaCommand;
 import com.fincore.account.command.ReservarFondosCommand;
+import com.fincore.account.entity.AuditoriaEstadoCuenta;
 import com.fincore.account.entity.Cuenta;
+
+import java.util.List;
 
 /**
  * Interfaz del servicio de comandos de cuentas (CQRS — Command side).
@@ -35,4 +38,6 @@ public interface CuentaCommandService {
     Cuenta revertirDebito(ActualizarSaldoCommand command);
 
     Cuenta revertirCredito(ActualizarSaldoCommand command);
+
+    List<AuditoriaEstadoCuenta> consultarAuditoria(Long idCuenta);
 }

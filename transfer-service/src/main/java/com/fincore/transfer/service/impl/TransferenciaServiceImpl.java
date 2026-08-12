@@ -3,13 +3,14 @@ package com.fincore.transfer.service;
 import com.fincore.transfer.dto.request.CrearTransferenciaRequest;
 import com.fincore.transfer.dto.response.TransferenciaResponse;
 import com.fincore.transfer.dto.response.TransferenciaResponse.EstadoTransferenciaDto;
+import com.fincore.transfer.entity.AuditoriaTransferencia;
 import com.fincore.transfer.entity.Transferencia;
 import com.fincore.transfer.entity.TransferenciaEstado;
+import com.fincore.transfer.enums.EstadoTransferencia;
 import com.fincore.transfer.enums.EstadoTransferencia;
 import com.fincore.transfer.repository.TransferenciaEstadoRepository;
 import com.fincore.transfer.repository.TransferenciaRepository;
 import com.fincore.transfer.repository.AuditoriaTransferenciaRepository;
-import com.fincore.transfer.entity.AuditoriaTransferencia;
 import com.fincore.transfer.saga.SagaOrchestrator;
 import com.fincore.transfer.saga.SagaResult;
 import com.fincore.transfer.websocket.WebSocketService;
@@ -104,6 +105,8 @@ public class TransferenciaServiceImpl implements TransferenciaService {
         estado.setFechaCambio(LocalDateTime.now());
         estadoRepository.save(estado);
 
+        registrarAuditoria(transferencia, "CREAR", null, EstadoTransferencia.PENDIENTE, "EXITOSO", "Transferencia creada", null, idUsuario, ipOrigen, request.getDispositivo(), traceId);
+
         log.info("Transferencia creada con número: {}", numeroTransferencia);
 
         // Ejecutar saga de forma asíncrona para no bloquear el API
@@ -162,6 +165,12 @@ public class TransferenciaServiceImpl implements TransferenciaService {
                 .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AuditoriaTransferencia> consultarAuditoria(Long idTransferencia) {
+        return auditoriaTransferenciaRepository.findByIdTransferenciaOrderByFechaAccionDesc(idTransferencia);
     }
 
     @Override

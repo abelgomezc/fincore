@@ -45,16 +45,19 @@ public class AuditoriaCambioBackoffice {
     @Column(name = "accion", length = 100, nullable = false)
     private String accion;
 
-    @Column(name = "valores_anteriores")
+    @Column(name = "valores_anteriores", columnDefinition = "TEXT")
     private String valoresAnteriores;
 
-    @Column(name = "valores_nuevos")
+    @Column(name = "valores_nuevos", columnDefinition = "TEXT")
     private String valoresNuevos;
+
+    @Column(name = "comentario", columnDefinition = "TEXT")
+    private String comentario;
 
     @Column(name = "ip_origen", length = 45)
     private String ipOrigen;
 
-    @Column(name = "user_agent")
+    @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
 
     @Column(name = "dispositivo", length = 255)

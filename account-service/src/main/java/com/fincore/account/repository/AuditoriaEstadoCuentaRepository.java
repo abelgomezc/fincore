@@ -4,6 +4,8 @@ import com.fincore.account.entity.AuditoriaEstadoCuenta;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Repositorio de auditoría de cambios de estado de cuenta.
  *
@@ -11,4 +13,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface AuditoriaEstadoCuentaRepository extends JpaRepository<AuditoriaEstadoCuenta, Long> {
+    List<AuditoriaEstadoCuenta> findByIdCuentaOrderByFechaCambioDesc(Long idCuenta);
 }

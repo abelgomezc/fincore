@@ -4,6 +4,8 @@ import com.fincore.auth.entity.AuditoriaPassword;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Repositorio de auditoría de cambios de contraseña.
  *
@@ -11,4 +13,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface AuditoriaPasswordRepository extends JpaRepository<AuditoriaPassword, Long> {
+    List<AuditoriaPassword> findByIdUsuarioOrderByFechaCambioDesc(Long idUsuario);
 }

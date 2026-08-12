@@ -170,11 +170,71 @@ erDiagram
     auditoria_passwords {
         bigserial id PK
         bigint id_usuario FK
+        text password_hash_anterior
+        text password_hash_nuevo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        text motivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_estados_usuario {
+        bigserial id PK
+        bigint id_usuario FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_passwords {
+        bigserial id PK
+        bigint id_usuario FK
         varchar(255) password_hash_anterior
         varchar(255) password_hash_nuevo
         varchar(45) ip_origen
         text user_agent
         varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_estados_usuario {
+        bigserial id PK
+        bigint id_usuario FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_passwords {
+        bigserial id PK
+        bigint id_usuario FK
+        text password_hash_anterior
+        text password_hash_nuevo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        text motivo
         timestamp fecha_cambio
         varchar(100) creado_por
         varchar(100) actualizado_por
@@ -301,6 +361,36 @@ erDiagram
         bigint version
     }
 
+    auditoria_estados_cliente {
+        bigserial id PK
+        bigint id_cliente FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_estados_cliente {
+        bigserial id PK
+        bigint id_cliente FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
     %% ============================================
     %% ACCOUNT SERVICE
     %% ============================================
@@ -387,6 +477,36 @@ erDiagram
         bigint version
     }
 
+    auditoria_estados_cuenta {
+        bigserial id PK
+        bigint id_cuenta FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_estados_cuenta {
+        bigserial id PK
+        bigint id_cuenta FK
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        text motivo
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
     %% ============================================
     %% TRANSFER SERVICE
     %% ============================================
@@ -452,6 +572,44 @@ erDiagram
         text detalle
         text error_detalle
         timestamp fecha_ejecucion
+    }
+
+    auditoria_transferencias {
+        bigserial id PK
+        bigint id_transferencia FK
+        varchar(50) accion
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        varchar(20) resultado
+        text detalle
+        text error_detalle
+        varchar(100) id_usuario
+        varchar(45) ip_origen
+        varchar(255) dispositivo
+        varchar(100) trace_id
+        timestamp fecha_accion
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_transferencias {
+        bigserial id PK
+        bigint id_transferencia FK
+        varchar(50) accion
+        varchar(20) estado_anterior
+        varchar(20) estado_nuevo
+        varchar(20) resultado
+        text detalle
+        text error_detalle
+        varchar(100) id_usuario
+        varchar(45) ip_origen
+        varchar(255) dispositivo
+        varchar(100) trace_id
+        timestamp fecha_accion
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
     }
 
     auditoria_transferencias {
@@ -645,6 +803,24 @@ erDiagram
         varchar(100) accion
         jsonb valores_anteriores
         jsonb valores_nuevos
+        text comentario
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
+    }
+
+    auditoria_cambios_backoffice {
+        bigserial id PK
+        bigint id_usuario_sistema FK
+        varchar(50) entidad
+        varchar(100) id_entidad
+        varchar(100) accion
+        jsonb valores_anteriores
+        jsonb valores_nuevos
         varchar(45) ip_origen
         text user_agent
         varchar(255) dispositivo
@@ -678,6 +854,24 @@ erDiagram
         jsonb diferencias
         varchar(20) estado
         timestamp fecha_creacion
+    }
+
+    auditoria_cambios_backoffice {
+        bigserial id PK
+        bigint id_usuario_sistema FK
+        varchar(50) entidad
+        varchar(100) id_entidad
+        varchar(100) accion
+        jsonb valores_anteriores
+        jsonb valores_nuevos
+        text comentario
+        varchar(45) ip_origen
+        text user_agent
+        varchar(255) dispositivo
+        timestamp fecha_cambio
+        varchar(100) creado_por
+        varchar(100) actualizado_por
+        bigint version
     }
 
     %% ============================================
@@ -940,6 +1134,40 @@ mvn test -f audit-service/pom.xml
 mvn test -f backoffice-service/pom.xml
 mvn test -f batch-service/pom.xml
 ```
+
+## 🧾 Auditoría
+
+El sistema registra auditoría especializada por entidad y por flujo. En el backoffice se puede consultar desde el modal de auditoría con pestañas para estados y contraseñas.
+
+### Tablas de auditoría
+
+| Tabla | Entidad | Comentario / detalle |
+|------|------|------|
+| `auditoria_passwords` | Usuario | `motivo` largo |
+| `auditoria_estados_usuario` | Usuario | `motivo` largo |
+| `auditoria_estados_cliente` | Cliente | `motivo` largo |
+| `auditoria_estados_cuenta` | Cuenta | `motivo` largo |
+| `auditoria_transferencias` | Transferencia | `detalle` largo |
+| `auditoria_cambios_backoffice` | Backoffice | `comentario` largo |
+
+### Endpoints de auditoría
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/auth/auditoria/{userId}` | Auditoría de estados de usuario |
+| GET | `/api/auth/auditoria/passwords/{userId}` | Auditoría de cambios de contraseña |
+| GET | `/api/clientes/{id}/auditoria` | Auditoría de estados de cliente |
+| GET | `/api/cuentas/{id}/auditoria` | Auditoría de estados de cuenta |
+| GET | `/api/v1/transferencias/{id}/auditoria` | Auditoría de transferencias |
+| GET | `/api/backoffice/auditoria/usuario/{id}` | Auditoría de cambios backoffice |
+
+### Flujos auditados
+
+- **Auth**: login, registro, refresh, logout-all, cambio de password, cambios de estado, consulta de usuario.
+- **Transferencias**: creación, completada, rechazada, revertida.
+- **Cuentas**: apertura, bloqueo.
+- **Clientes**: bloqueo, desbloqueo, suspensión, reactivación, eliminación.
+- **Backoffice**: cambios en usuarios backoffice.
 
 ## 📦 Build
 

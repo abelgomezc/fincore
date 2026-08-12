@@ -2,6 +2,7 @@ package com.fincore.transfer.service;
 
 import com.fincore.transfer.dto.request.CrearTransferenciaRequest;
 import com.fincore.transfer.dto.response.TransferenciaResponse;
+import com.fincore.transfer.entity.AuditoriaTransferencia;
 import com.fincore.transfer.enums.EstadoTransferencia;
 import org.springframework.data.domain.Page;
 
@@ -25,4 +26,6 @@ public interface TransferenciaService {
     List<TransferenciaResponse> listarPorEstado(EstadoTransferencia estado);
 
     TransferenciaResponse revertirTransferencia(Long id, String motivo);
+
+    List<AuditoriaTransferencia> consultarAuditoria(Long id);
 }

@@ -12,6 +12,7 @@ CREATE TABLE auditoria_cambios_backoffice (
     accion VARCHAR(100) NOT NULL,
     valores_anteriores JSONB,
     valores_nuevos JSONB,
+    comentario TEXT,
     ip_origen VARCHAR(45),
     user_agent TEXT,
     dispositivo VARCHAR(255),

@@ -7,6 +7,8 @@ import com.fincore.transfer.enums.PasoSaga;
 import com.fincore.transfer.repository.SagaLogRepository;
 import com.fincore.transfer.repository.TransferenciaRepository;
 import com.fincore.transfer.repository.TransferenciaEstadoRepository;
+import com.fincore.transfer.repository.AuditoriaTransferenciaRepository;
+import com.fincore.transfer.entity.AuditoriaTransferencia;
 import com.fincore.transfer.saga.CompensationStep;
 import com.fincore.transfer.saga.SagaStep;
 import com.fincore.transfer.kafka.TransferenciaEventProducer;
@@ -32,6 +34,7 @@ public class SagaOrchestrator {
     private final TransferenciaEstadoRepository estadoRepository;
     private final SagaLogRepository sagaLogRepository;
     private final TransferenciaEventProducer eventProducer;
+    private final AuditoriaTransferenciaRepository auditoriaTransferenciaRepository;
 
     private final List<SagaStep> steps;
     private final Map<PasoSaga, CompensationStep> compensations;
@@ -41,12 +44,14 @@ public class SagaOrchestrator {
             TransferenciaEstadoRepository estadoRepository,
             SagaLogRepository sagaLogRepository,
             TransferenciaEventProducer eventProducer,
+            AuditoriaTransferenciaRepository auditoriaTransferenciaRepository,
             List<SagaStep> steps,
             List<CompensationStep> compensations) {
         this.transferenciaRepository = transferenciaRepository;
         this.estadoRepository = estadoRepository;
         this.sagaLogRepository = sagaLogRepository;
         this.eventProducer = eventProducer;
+        this.auditoriaTransferenciaRepository = auditoriaTransferenciaRepository;
         this.steps = new ArrayList<>(steps);
         this.compensations = new EnumMap<>(PasoSaga.class);
 
@@ -113,6 +118,8 @@ public class SagaOrchestrator {
                     transferencia.setMotivoRechazo(e.getMessage());
                     transferenciaRepository.save(transferencia);
 
+                    registrarAuditoriaTransferencia(transferencia, "RECHAZAR", EstadoTransferencia.PENDIENTE, EstadoTransferencia.ERROR, "FALLIDO", e.getMessage(), e.getClass().getSimpleName() + ": " + e.getMessage());
+
                     // Publicar evento de error
                     eventProducer.publicarTransferenciaFallida(transferencia, e.getMessage());
 
@@ -129,6 +136,8 @@ public class SagaOrchestrator {
             transferencia.setFechaCompletada(LocalDateTime.now());
             transferenciaRepository.save(transferencia);
 
+            registrarAuditoriaTransferencia(transferencia, "COMPLETAR", EstadoTransferencia.PENDIENTE, EstadoTransferencia.COMPLETADA, "EXITOSO", "Saga completada exitosamente", null);
+
             // Publicar evento de completada
             eventProducer.publicarTransferenciaCompletada(transferencia);
 
@@ -137,9 +146,12 @@ public class SagaOrchestrator {
 
         } catch (Exception e) {
             log.error("ERROR INESPERADO EN SAGA: {}", e.getMessage(), e);
-            transferencia.setEstado(EstadoTransferencia.ERROR);
+            EstadoTransferencia estadoError = EstadoTransferencia.ERROR;
+            transferencia.setEstado(estadoError);
             transferencia.setMotivoRechazo("Error inesperado: " + e.getMessage());
             transferenciaRepository.save(transferencia);
+
+            registrarAuditoriaTransferencia(transferencia, "ERROR", EstadoTransferencia.PENDIENTE, estadoError, "FALLIDO", e.getMessage(), e.getClass().getSimpleName() + ": " + e.getMessage());
 
             // Intentar compensaciones
             return ejecutarCompensaciones(context, pasosEjecutados,
@@ -185,12 +197,15 @@ public class SagaOrchestrator {
 
         // Marcar transferencia como revertida
         Transferencia transferencia = context.getTransferencia();
+        EstadoTransferencia estadoAnterior = transferencia.getEstado();
         transferencia.setEstado(EstadoTransferencia.REVERTIDA);
         transferencia.setFechaRevertida(LocalDateTime.now());
         transferencia.setMotivoRechazo(excepcion instanceof SagaStepException
                 ? excepcion.getMessage()
                 : "Transferencia revertida por compensación. Compensaciones: " + compensacionesEjecutadas);
         transferenciaRepository.save(transferencia);
+
+        registrarAuditoriaTransferencia(transferencia, "REVERTIR", estadoAnterior != null ? estadoAnterior : EstadoTransferencia.PENDIENTE, EstadoTransferencia.REVERTIDA, "EXITOSO", "Compensaciones: " + compensacionesEjecutadas, excepcion instanceof SagaStepException ? ((SagaStepException) excepcion).getMessage() : excepcion.getMessage());
 
         // Publicar evento de revertida
         eventProducer.publicarTransferenciaFallida(transferencia,
@@ -219,5 +234,25 @@ public class SagaOrchestrator {
         log.setTiempoEjecucionMs((int) (System.currentTimeMillis() - inicioMs));
         log.setFechaEjecucion(LocalDateTime.now());
         sagaLogRepository.save(log);
+    }
+
+    private void registrarAuditoriaTransferencia(Transferencia transferencia, String accion, EstadoTransferencia estadoAnterior, EstadoTransferencia estadoNuevo, String resultado, String detalle, String errorDetalle) {
+        AuditoriaTransferencia auditoria = new AuditoriaTransferencia();
+        auditoria.setIdTransferencia(transferencia.getId());
+        auditoria.setAccion(accion);
+        auditoria.setEstadoAnterior(estadoAnterior != null ? estadoAnterior.name() : null);
+        auditoria.setEstadoNuevo(estadoNuevo != null ? estadoNuevo.name() : null);
+        auditoria.setResultado(resultado);
+        auditoria.setDetalle(detalle);
+        auditoria.setErrorDetalle(errorDetalle);
+        auditoria.setIdUsuario(transferencia.getIdUsuario());
+        auditoria.setIpOrigen(transferencia.getIpOrigen());
+        auditoria.setDispositivo(transferencia.getDispositivo());
+        auditoria.setTraceId(transferencia.getTraceId());
+        auditoria.setFechaAccion(LocalDateTime.now());
+        auditoria.setCreadoPor("system");
+        auditoria.setActualizadoPor("system");
+        auditoria.setVersion(0L);
+        auditoriaTransferenciaRepository.save(auditoria);
     }
 }

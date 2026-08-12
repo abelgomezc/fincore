@@ -3,6 +3,7 @@ package com.fincore.account.controller;
 import com.fincore.account.command.AbrirCuentaCommand;
 import com.fincore.account.command.BloquearCuentaCommand;
 import com.fincore.account.dto.response.CuentaResponse;
+import com.fincore.account.entity.AuditoriaEstadoCuenta;
 import com.fincore.account.entity.Cuenta;
 import com.fincore.account.enums.TipoCuentaEnum;
 import com.fincore.account.service.CuentaCommandService;
@@ -100,6 +101,13 @@ public class CuentaController {
         log.info("GET /api/cuentas/validar/{}", id);
         boolean valida = cuentaQueryService.validarCuenta(id);
         return ResponseEntity.ok(valida);
+    }
+
+    @GetMapping("/{id}/auditoria")
+    public ResponseEntity<List<AuditoriaEstadoCuenta>> consultarAuditoria(@PathVariable Long id) {
+        log.info("GET /api/cuentas/{}/auditoria", id);
+        List<AuditoriaEstadoCuenta> auditoria = cuentaCommandService.consultarAuditoria(id);
+        return ResponseEntity.ok(auditoria);
     }
 
     private CuentaResponse mapToResponse(Cuenta cuenta) {

@@ -1,5 +1,6 @@
 package com.fincore.backoffice.controller;
 
+import com.fincore.backoffice.entity.AuditoriaCambioBackoffice;
 import com.fincore.backoffice.entity.UsuarioSistema;
 import com.fincore.backoffice.enums.EstadoUsuarioSistema;
 import com.fincore.backoffice.service.UsuarioService;
@@ -72,6 +73,12 @@ public class BackofficeController {
                 request.get("password")
         );
         return ResponseEntity.ok(valido);
+    }
+
+    @GetMapping("/auditoria/usuario/{id}")
+    public ResponseEntity<List<AuditoriaCambioBackoffice>> consultarAuditoriaUsuario(@PathVariable Long id) {
+        List<AuditoriaCambioBackoffice> auditoria = usuarioService.consultarAuditoria(id);
+        return ResponseEntity.ok(auditoria);
     }
 
     @GetMapping("/clientes")

@@ -1,5 +1,6 @@
 package com.fincore.backoffice.service;
 
+import com.fincore.backoffice.entity.AuditoriaCambioBackoffice;
 import com.fincore.backoffice.entity.UsuarioSistema;
 import com.fincore.backoffice.enums.EstadoUsuarioSistema;
 
@@ -24,4 +25,6 @@ public interface UsuarioService {
     void cambiarEstado(Long id, EstadoUsuarioSistema estado);
 
     boolean validarCredenciales(String username, String password);
+
+    List<AuditoriaCambioBackoffice> consultarAuditoria(Long id);
 }

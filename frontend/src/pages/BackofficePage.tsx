@@ -8,7 +8,7 @@ import { clienteApi } from '@/api/authApi';
 import { Card, Badge, Button } from '@/components/ui';
 import { Transferencia } from '@/types/transfer';
 import { EvaluacionFraude } from '@/types/fraud';
-import { UsuarioBackoffice, Cliente } from '@/types';
+import { UsuarioBackoffice, Cliente, AuditoriaItem } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import {
   IconShieldCheck,
@@ -24,6 +24,7 @@ import {
   IconPlayerPlay,
   IconTrash,
   IconEye,
+  IconClipboardList,
 } from '@tabler/icons-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -43,6 +44,13 @@ export const BackofficePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UsuarioBackoffice | null>(null);
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
+  const [auditoriaModalOpen, setAuditoriaModalOpen] = useState(false);
+  const [auditoriaEntidad, setAuditoriaEntidad] = useState<{ tipo: 'usuario' | 'cliente', id: number } | null>(null);
+  const [auditoriaItems, setAuditoriaItems] = useState<AuditoriaItem[]>([]);
+  const [isLoadingAuditoria, setIsLoadingAuditoria] = useState(false);
+  const [auditoriaTab, setAuditoriaTab] = useState<'estados' | 'passwords'>('estados');
+  const [auditoriaModalOpen, setAuditoriaModalOpen] = useState(false);
+  const [auditoriaEntidad, setAuditoriaEntidad] = useState<{ tipo: 'usuario' | 'cliente', id: number } | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !isAdmin) {
@@ -101,6 +109,38 @@ export const BackofficePage: React.FC = () => {
     } catch (error) {
       console.error('Error cambiando estado del cliente:', error);
     }
+  };
+
+  const handleVerAuditoria = async (tipo: 'usuario' | 'cliente', id: number) => {
+    setAuditoriaEntidad({ tipo, id });
+    setAuditoriaModalOpen(true);
+    setIsLoadingAuditoria(true);
+    setAuditoriaItems([]);
+    setAuditoriaTab('estados');
+
+    try {
+      if (tipo === 'usuario') {
+        const [estados, passwords] = await Promise.all([
+          authApi.consultarAuditoriaUsuario(id),
+          authApi.consultarAuditoriaPasswords(id),
+        ]);
+        setAuditoriaItems([
+          ...estados.map(item => ({ ...item, _tipo: 'estado' })),
+          ...passwords.map(item => ({ ...item, _tipo: 'password' })),
+        ]);
+      } else if (tipo === 'cliente') {
+        setAuditoriaItems([]);
+      }
+    } catch (error) {
+      console.error('Error cargando auditoría:', error);
+    } finally {
+      setIsLoadingAuditoria(false);
+    }
+  };
+
+  const handleVerAuditoria = (tipo: 'usuario' | 'cliente', id: number) => {
+    setAuditoriaEntidad({ tipo, id });
+    setAuditoriaModalOpen(true);
   };
 
   const estadoBadgeVariant = (estado: string): 'primary' | 'warning' | 'success' | 'danger' | 'neutral' => {
@@ -255,40 +295,46 @@ export const BackofficePage: React.FC = () => {
                                   {u.estado}
                                 </Badge>
                               </td>
-                              <td className="py-3 px-4">
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    icon={<IconEye className="w-4 h-4" />}
-                                    onClick={() => setSelectedUser(u)}
-                                  />
-                                  {u.estado === 'ACTIVO' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      icon={<IconPlayerPause className="w-4 h-4 text-amber-600" />}
-                                      onClick={() => handleCambiarEstadoUsuario(u.id, 'SUSPENDIDO')}
-                                    />
-                                  )}
-                                  {(u.estado === 'SUSPENDIDO' || u.estado === 'INACTIVO') && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      icon={<IconPlayerPlay className="w-4 h-4 text-green-600" />}
-                                      onClick={() => handleCambiarEstadoUsuario(u.id, 'ACTIVO')}
-                                    />
-                                  )}
-                                  {u.estado !== 'ELIMINADO' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      icon={<IconTrash className="w-4 h-4 text-red-600" />}
-                                      onClick={() => handleCambiarEstadoUsuario(u.id, 'ELIMINADO')}
-                                    />
-                                  )}
-                                </div>
-                              </td>
+                               <td className="py-3 px-4">
+                                 <div className="flex items-center gap-2">
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     icon={<IconEye className="w-4 h-4" />}
+                                     onClick={() => setSelectedUser(u)}
+                                   />
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     icon={<IconClipboardList className="w-4 h-4 text-slate-600" />}
+                                     onClick={() => handleVerAuditoria('usuario', u.id)}
+                                   />
+                                   {u.estado === 'ACTIVO' && (
+                                     <Button
+                                       variant="ghost"
+                                       size="sm"
+                                       icon={<IconPlayerPause className="w-4 h-4 text-amber-600" />}
+                                       onClick={() => handleCambiarEstadoUsuario(u.id, 'SUSPENDIDO')}
+                                     />
+                                   )}
+                                   {(u.estado === 'SUSPENDIDO' || u.estado === 'INACTIVO') && (
+                                     <Button
+                                       variant="ghost"
+                                       size="sm"
+                                       icon={<IconPlayerPlay className="w-4 h-4 text-green-600" />}
+                                       onClick={() => handleCambiarEstadoUsuario(u.id, 'ACTIVO')}
+                                     />
+                                   )}
+                                   {u.estado !== 'ELIMINADO' && (
+                                     <Button
+                                       variant="ghost"
+                                       size="sm"
+                                       icon={<IconTrash className="w-4 h-4 text-red-600" />}
+                                       onClick={() => handleCambiarEstadoUsuario(u.id, 'ELIMINADO')}
+                                     />
+                                   )}
+                                 </div>
+                               </td>
                             </tr>
                           ))}
                         </tbody>
@@ -330,40 +376,46 @@ export const BackofficePage: React.FC = () => {
                                   {c.estado}
                                 </Badge>
                               </td>
-                              <td className="py-3 px-4">
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    icon={<IconEye className="w-4 h-4" />}
-                                    onClick={() => setSelectedCliente(c)}
-                                  />
-                                  {c.estado === 'ACTIVO' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      icon={<IconPlayerPause className="w-4 h-4 text-amber-600" />}
-                                      onClick={() => handleCambiarEstadoCliente(c.id, 'SUSPENDIDO')}
-                                    />
-                                  )}
-                                  {(c.estado === 'SUSPENDIDO' || c.estado === 'INACTIVO') && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      icon={<IconPlayerPlay className="w-4 h-4 text-green-600" />}
-                                      onClick={() => handleCambiarEstadoCliente(c.id, 'ACTIVO')}
-                                    />
-                                  )}
-                                  {c.estado !== 'ELIMINADO' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      icon={<IconTrash className="w-4 h-4 text-red-600" />}
-                                      onClick={() => handleCambiarEstadoCliente(c.id, 'ELIMINADO')}
-                                    />
-                                  )}
-                                </div>
-                              </td>
+                               <td className="py-3 px-4">
+                                 <div className="flex items-center gap-2">
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     icon={<IconEye className="w-4 h-4" />}
+                                     onClick={() => setSelectedCliente(c)}
+                                   />
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     icon={<IconClipboardList className="w-4 h-4 text-slate-600" />}
+                                     onClick={() => handleVerAuditoria('cliente', c.id)}
+                                   />
+                                   {c.estado === 'ACTIVO' && (
+                                     <Button
+                                       variant="ghost"
+                                       size="sm"
+                                       icon={<IconPlayerPause className="w-4 h-4 text-amber-600" />}
+                                       onClick={() => handleCambiarEstadoCliente(c.id, 'SUSPENDIDO')}
+                                     />
+                                   )}
+                                   {(c.estado === 'SUSPENDIDO' || c.estado === 'INACTIVO') && (
+                                     <Button
+                                       variant="ghost"
+                                       size="sm"
+                                       icon={<IconPlayerPlay className="w-4 h-4 text-green-600" />}
+                                       onClick={() => handleCambiarEstadoCliente(c.id, 'ACTIVO')}
+                                     />
+                                   )}
+                                   {c.estado !== 'ELIMINADO' && (
+                                     <Button
+                                       variant="ghost"
+                                       size="sm"
+                                       icon={<IconTrash className="w-4 h-4 text-red-600" />}
+                                       onClick={() => handleCambiarEstadoCliente(c.id, 'ELIMINADO')}
+                                     />
+                                   )}
+                                 </div>
+                               </td>
                             </tr>
                           ))}
                         </tbody>
@@ -472,6 +524,92 @@ export const BackofficePage: React.FC = () => {
                   <span className="text-sm text-slate-500 dark:text-slate-400">Fecha de registro</span>
                   <p className="font-medium text-slate-800 dark:text-slate-100">{selectedCliente.fechaCreacion}</p>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de auditoría */}
+      <AnimatePresence>
+        {auditoriaModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setAuditoriaModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-3xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                  Auditoría {auditoriaEntidad?.tipo === 'usuario' ? 'Usuario' : 'Cliente'} #{auditoriaEntidad?.id}
+                </h3>
+                <Button variant="ghost" size="sm" onClick={() => setAuditoriaModalOpen(false)}>Cerrar</Button>
+              </div>
+              {auditoriaEntidad?.tipo === 'usuario' && (
+                <div className="flex items-center gap-2 mb-4">
+                  <Button
+                    size="sm"
+                    variant={auditoriaTab === 'estados' ? 'primary' : 'outline'}
+                    onClick={() => setAuditoriaTab('estados')}
+                  >
+                    Estados
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={auditoriaTab === 'passwords' ? 'primary' : 'outline'}
+                    onClick={() => setAuditoriaTab('passwords')}
+                  >
+                    Contraseñas
+                  </Button>
+                </div>
+              )}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      <th className="text-left py-2 px-3">Fecha</th>
+                      <th className="text-left py-2 px-3">Acción</th>
+                      <th className="text-left py-2 px-3">Estado anterior</th>
+                      <th className="text-left py-2 px-3">Estado nuevo</th>
+                      <th className="text-left py-2 px-3">Motivo / detalle</th>
+                      <th className="text-left py-2 px-3">IP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoadingAuditoria && (
+                      <tr>
+                        <td colSpan={6} className="py-4 text-center text-slate-500">Cargando auditoría...</td>
+                      </tr>
+                    )}
+                    {!isLoadingAuditoria && auditoriaItems
+                      .filter(item => auditoriaEntidad?.tipo !== 'usuario' || (auditoriaTab === 'estados' ? item.accion !== 'CAMBIO_PASSWORD' : item.accion === 'CAMBIO_PASSWORD'))
+                      .length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="py-4 text-center text-slate-500">Sin registros de auditoría</td>
+                      </tr>
+                    )}
+                    {auditoriaItems
+                      .filter(item => auditoriaEntidad?.tipo !== 'usuario' || (auditoriaTab === 'estados' ? item.accion !== 'CAMBIO_PASSWORD' : item.accion === 'CAMBIO_PASSWORD'))
+                      .map((item) => (
+                      <tr key={item.id} className="border-b border-slate-100 dark:border-slate-800">
+                        <td className="py-2 px-3 text-xs">{item.fechaCambio ? new Date(item.fechaCambio).toLocaleString() : '--'}</td>
+                        <td className="py-2 px-3">{item.accion}</td>
+                        <td className="py-2 px-3">{item.estadoAnterior ?? '--'}</td>
+                        <td className="py-2 px-3">{item.estadoNuevo ?? '--'}</td>
+                        <td className="py-2 px-3">{item.motivo ?? item.userAgent ?? '--'}</td>
+                        <td className="py-2 px-3">{item.ipOrigen ?? '--'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </motion.div>
           </motion.div>

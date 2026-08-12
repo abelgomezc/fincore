@@ -35,20 +35,23 @@ public class AuditoriaPassword {
     @Column(name = "id_usuario", nullable = false)
     private Long idUsuario;
 
-    @Column(name = "password_hash_anterior", nullable = false)
+    @Column(name = "password_hash_anterior", nullable = false, columnDefinition = "TEXT")
     private String passwordHashAnterior;
 
-    @Column(name = "password_hash_nuevo", nullable = false)
+    @Column(name = "password_hash_nuevo", nullable = false, columnDefinition = "TEXT")
     private String passwordHashNuevo;
 
     @Column(name = "ip_origen", length = 45)
     private String ipOrigen;
 
-    @Column(name = "user_agent")
+    @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
 
     @Column(name = "dispositivo", length = 255)
     private String dispositivo;
+
+    @Column(name = "motivo", columnDefinition = "TEXT")
+    private String motivo;
 
     @Column(name = "fecha_cambio", nullable = false)
     private LocalDateTime fechaCambio;

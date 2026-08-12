@@ -5,6 +5,7 @@ import com.fincore.auth.dto.request.RefreshRequest;
 import com.fincore.auth.dto.request.RegisterRequest;
 import com.fincore.auth.dto.response.AuthResponse;
 import com.fincore.auth.dto.response.UsuarioResponse;
+import com.fincore.auth.dto.response.AuditoriaResponse;
 
 import java.util.List;
 
@@ -40,5 +41,11 @@ public interface AuthService {
 
     void eliminarUsuario(Long userId);
 
+    void cambiarPassword(Long userId, String passwordActual, String passwordNuevo, String comentario);
+
     List<UsuarioResponse> listarUsuarios();
+
+    List<AuditoriaResponse> consultarAuditoriaUsuario(Long userId);
+
+    List<AuditoriaResponse> consultarAuditoriaPasswords(Long userId);
 }

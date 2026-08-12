@@ -4,6 +4,8 @@ import com.fincore.transfer.entity.AuditoriaTransferencia;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Repositorio de auditoría extendida de transferencias.
  *
@@ -11,4 +13,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface AuditoriaTransferenciaRepository extends JpaRepository<AuditoriaTransferencia, Long> {
+    List<AuditoriaTransferencia> findByIdTransferenciaOrderByFechaAccionDesc(Long idTransferencia);
 }

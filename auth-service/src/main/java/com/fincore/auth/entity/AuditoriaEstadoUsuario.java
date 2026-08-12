@@ -41,13 +41,13 @@ public class AuditoriaEstadoUsuario {
     @Column(name = "estado_nuevo", length = 20, nullable = false)
     private String estadoNuevo;
 
-    @Column(name = "motivo")
+    @Column(name = "motivo", columnDefinition = "TEXT")
     private String motivo;
 
     @Column(name = "ip_origen", length = 45)
     private String ipOrigen;
 
-    @Column(name = "user_agent")
+    @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
 
     @Column(name = "dispositivo", length = 255)

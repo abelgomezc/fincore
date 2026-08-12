@@ -1,5 +1,6 @@
 package com.fincore.customer.service;
 
+import com.fincore.customer.entity.AuditoriaEstadoCliente;
 import com.fincore.customer.dto.request.CrearClienteRequest;
 import com.fincore.customer.dto.request.ActualizarClienteRequest;
 import com.fincore.customer.dto.response.ClienteResponse;
@@ -41,6 +42,8 @@ public interface ClienteService {
     void reactivarCliente(Long id);
 
     void eliminarCliente(Long id);
+
+    List<AuditoriaEstadoCliente> consultarAuditoria(Long id);
 
     boolean validarCedula(String cedula);
 
