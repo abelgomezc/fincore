@@ -2,7 +2,7 @@ import React from 'react';
 import { Transferencia } from '@/types/transfer';
 import { EvaluacionFraude } from '@/types/fraud';
 import { clsx } from '@/lib/utils';
-import { Card, Badge } from '@/components/ui';
+import { Card, Badge, Button } from '@/components/ui';
 import { motion } from 'framer-motion';
 import {
   IconClock,
@@ -14,11 +14,13 @@ import {
   IconFileChart,
   IconTrendingUp,
   IconTrendingDown,
+  IconClipboardList,
 } from '@tabler/icons-react';
 
 interface TransferReviewListProps {
   transferencias: Transferencia[];
   onSelect?: (transferencia: Transferencia) => void;
+  onAudit?: (transferencia: Transferencia) => void;
   isLoading?: boolean;
 }
 
@@ -34,6 +36,7 @@ const estadoBadgeConfig: Record<string, { variant: 'warning' | 'danger' | 'succe
 export const TransferReviewList: React.FC<TransferReviewListProps> = ({
   transferencias,
   onSelect,
+  onAudit,
   isLoading,
 }) => {
   if (isLoading) {
@@ -78,16 +81,29 @@ export const TransferReviewList: React.FC<TransferReviewListProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <span className="font-semibold text-slate-800">
-                  ${t.monto.toFixed(2)} {t.moneda}
-                </span>
-                <div className="mt-1">
-                  <Badge variant={config.variant} size="sm">
-                    {config.icon}
-                    <span className="ml-1">{t.estado}</span>
-                  </Badge>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <span className="font-semibold text-slate-800">
+                    ${t.monto.toFixed(2)} {t.moneda}
+                  </span>
+                  <div className="mt-1">
+                    <Badge variant={config.variant} size="sm">
+                      {config.icon}
+                      <span className="ml-1">{t.estado}</span>
+                    </Badge>
+                  </div>
                 </div>
+                {onAudit && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={<IconClipboardList className="w-4 h-4 text-slate-600" />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAudit(t);
+                    }}
+                  />
+                )}
               </div>
             </div>
           </motion.div>

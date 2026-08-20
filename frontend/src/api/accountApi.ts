@@ -38,4 +38,24 @@ export const accountApi = {
     const response = await apiClient.get(`/api/beneficiarios?cuentaId=${idCuenta}`);
     return response.data;
   },
+
+  consultarAuditoria: async (idCuenta: number): Promise<AuditoriaItem[]> => {
+    const response = await apiClient.get<AuditoriaItem[]>(`/api/cuentas/${idCuenta}/auditoria`);
+    return response.data;
+  },
 };
+
+export interface AuditoriaItem {
+  id: number;
+  entidad: string;
+  idEntidad: string;
+  accion: string;
+  estadoAnterior?: string;
+  estadoNuevo?: string;
+  motivo?: string;
+  ipOrigen?: string;
+  userAgent?: string;
+  dispositivo?: string;
+  fechaCambio?: string;
+  creadoPor?: string;
+}

@@ -33,4 +33,28 @@ export const transferApi = {
   cancelarTransferencia: async (id: string): Promise<void> => {
     await apiClient.post(`/api/transferencias/${id}/cancelar`);
   },
+
+  consultarAuditoria: async (id: string): Promise<AuditoriaTransferencia[]> => {
+    const response = await apiClient.get<AuditoriaTransferencia[]>(`/api/transferencias/${id}/auditoria`);
+    return response.data;
+  },
 };
+
+export interface AuditoriaTransferencia {
+  id: number;
+  idTransferencia: number;
+  accion: string;
+  estadoAnterior?: string;
+  estadoNuevo?: string;
+  resultado: string;
+  detalle?: string;
+  errorDetalle?: string;
+  idUsuario?: string;
+  ipOrigen?: string;
+  dispositivo?: string;
+  traceId?: string;
+  fechaAccion?: string;
+  creadoPor?: string;
+  actualizadoPor?: string;
+  version: number;
+}

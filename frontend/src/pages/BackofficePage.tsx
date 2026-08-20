@@ -3,12 +3,14 @@ import { Header, Sidebar, Footer } from '@/components/layout';
 import { TransferReviewList, FraudAlertList, ReportsPanel } from '@/components/backoffice';
 import { useAuthStore } from '@/store/authStore';
 import { backofficeApi } from '@/api/backofficeApi';
-import { authApi } from '@/api/authApi';
-import { clienteApi } from '@/api/authApi';
+import { authApi, clienteApi } from '@/api/authApi';
+import { accountApi } from '@/api/accountApi';
+import { transferApi } from '@/api/transferApi';
 import { Card, Badge, Button } from '@/components/ui';
 import { Transferencia } from '@/types/transfer';
 import { EvaluacionFraude } from '@/types/fraud';
-import { UsuarioBackoffice, Cliente, AuditoriaItem } from '@/types';
+import { UsuarioBackoffice, Cliente } from '@/types';
+import { AuditoriaItem } from '@/api/authApi';
 import { useNavigate } from 'react-router-dom';
 import {
   IconShieldCheck,
@@ -45,12 +47,10 @@ export const BackofficePage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<UsuarioBackoffice | null>(null);
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
   const [auditoriaModalOpen, setAuditoriaModalOpen] = useState(false);
-  const [auditoriaEntidad, setAuditoriaEntidad] = useState<{ tipo: 'usuario' | 'cliente', id: number } | null>(null);
+  const [auditoriaEntidad, setAuditoriaEntidad] = useState<{ tipo: 'usuario' | 'cliente' | 'cuenta' | 'transferencia', id: number } | null>(null);
   const [auditoriaItems, setAuditoriaItems] = useState<AuditoriaItem[]>([]);
   const [isLoadingAuditoria, setIsLoadingAuditoria] = useState(false);
   const [auditoriaTab, setAuditoriaTab] = useState<'estados' | 'passwords'>('estados');
-  const [auditoriaModalOpen, setAuditoriaModalOpen] = useState(false);
-  const [auditoriaEntidad, setAuditoriaEntidad] = useState<{ tipo: 'usuario' | 'cliente', id: number } | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !isAdmin) {
@@ -111,7 +111,7 @@ export const BackofficePage: React.FC = () => {
     }
   };
 
-  const handleVerAuditoria = async (tipo: 'usuario' | 'cliente', id: number) => {
+  const handleVerAuditoria = async (tipo: 'usuario' | 'cliente' | 'cuenta' | 'transferencia', id: number) => {
     setAuditoriaEntidad({ tipo, id });
     setAuditoriaModalOpen(true);
     setIsLoadingAuditoria(true);
@@ -125,22 +125,24 @@ export const BackofficePage: React.FC = () => {
           authApi.consultarAuditoriaPasswords(id),
         ]);
         setAuditoriaItems([
-          ...estados.map(item => ({ ...item, _tipo: 'estado' })),
-          ...passwords.map(item => ({ ...item, _tipo: 'password' })),
+          ...estados.map(item => ({ ...item, _tipo: 'estado' } as AuditoriaItem)),
+          ...passwords.map(item => ({ ...item, _tipo: 'password' } as AuditoriaItem)),
         ]);
       } else if (tipo === 'cliente') {
-        setAuditoriaItems([]);
+        const data = await clienteApi.consultarAuditoria(id);
+        setAuditoriaItems(data.map(item => ({ ...item, _tipo: 'estado' } as AuditoriaItem)));
+      } else if (tipo === 'cuenta') {
+        const data = await accountApi.consultarAuditoria(id);
+        setAuditoriaItems(data.map(item => ({ ...item, _tipo: 'estado' } as AuditoriaItem)));
+      } else if (tipo === 'transferencia') {
+        const data = await transferApi.consultarAuditoria(id.toString());
+        setAuditoriaItems(data.map(item => ({ ...item, _tipo: 'transferencia' } as AuditoriaItem)));
       }
     } catch (error) {
       console.error('Error cargando auditoría:', error);
     } finally {
       setIsLoadingAuditoria(false);
     }
-  };
-
-  const handleVerAuditoria = (tipo: 'usuario' | 'cliente', id: number) => {
-    setAuditoriaEntidad({ tipo, id });
-    setAuditoriaModalOpen(true);
   };
 
   const estadoBadgeVariant = (estado: string): 'primary' | 'warning' | 'success' | 'danger' | 'neutral' => {
@@ -254,7 +256,11 @@ export const BackofficePage: React.FC = () => {
                     className="grid grid-cols-1 lg:grid-cols-2 gap-6"
                   >
                     <Card title="Transferencias en Revisión" icon={<IconClock className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
-                      <TransferReviewList transferencias={transferencias} isLoading={isLoading} />
+                      <TransferReviewList
+                        transferencias={transferencias}
+                        isLoading={isLoading}
+                        onAudit={(t) => handleVerAuditoria('transferencia', Number(t.id))}
+                      />
                     </Card>
                     <Card title="Alertas de Fraude" icon={<IconAlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />}>
                       <FraudAlertList evaluaciones={fraudAlerts} isLoading={isLoading} />
@@ -549,7 +555,7 @@ export const BackofficePage: React.FC = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                  Auditoría {auditoriaEntidad?.tipo === 'usuario' ? 'Usuario' : 'Cliente'} #{auditoriaEntidad?.id}
+                  Auditoría {auditoriaEntidad?.tipo === 'usuario' ? 'Usuario' : auditoriaEntidad?.tipo === 'cliente' ? 'Cliente' : auditoriaEntidad?.tipo === 'cuenta' ? 'Cuenta' : 'Transferencia'} #{auditoriaEntidad?.id}
                 </h3>
                 <Button variant="ghost" size="sm" onClick={() => setAuditoriaModalOpen(false)}>Cerrar</Button>
               </div>
@@ -576,24 +582,38 @@ export const BackofficePage: React.FC = () => {
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-700">
                       <th className="text-left py-2 px-3">Fecha</th>
-                      <th className="text-left py-2 px-3">Acción</th>
-                      <th className="text-left py-2 px-3">Estado anterior</th>
-                      <th className="text-left py-2 px-3">Estado nuevo</th>
-                      <th className="text-left py-2 px-3">Motivo / detalle</th>
-                      <th className="text-left py-2 px-3">IP</th>
+                      {auditoriaEntidad?.tipo === 'transferencia' ? (
+                        <>
+                          <th className="text-left py-2 px-3">Acción</th>
+                          <th className="text-left py-2 px-3">Estado anterior</th>
+                          <th className="text-left py-2 px-3">Estado nuevo</th>
+                          <th className="text-left py-2 px-3">Resultado</th>
+                          <th className="text-left py-2 px-3">Detalle</th>
+                          <th className="text-left py-2 px-3">Trace ID</th>
+                          <th className="text-left py-2 px-3">IP</th>
+                        </>
+                      ) : (
+                        <>
+                          <th className="text-left py-2 px-3">Acción</th>
+                          <th className="text-left py-2 px-3">Estado anterior</th>
+                          <th className="text-left py-2 px-3">Estado nuevo</th>
+                          <th className="text-left py-2 px-3">Motivo / detalle</th>
+                          <th className="text-left py-2 px-3">IP</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
                     {isLoadingAuditoria && (
                       <tr>
-                        <td colSpan={6} className="py-4 text-center text-slate-500">Cargando auditoría...</td>
+                        <td colSpan={auditoriaEntidad?.tipo === 'transferencia' ? 7 : 6} className="py-4 text-center text-slate-500">Cargando auditoría...</td>
                       </tr>
                     )}
                     {!isLoadingAuditoria && auditoriaItems
                       .filter(item => auditoriaEntidad?.tipo !== 'usuario' || (auditoriaTab === 'estados' ? item.accion !== 'CAMBIO_PASSWORD' : item.accion === 'CAMBIO_PASSWORD'))
                       .length === 0 && (
                       <tr>
-                        <td colSpan={6} className="py-4 text-center text-slate-500">Sin registros de auditoría</td>
+                        <td colSpan={auditoriaEntidad?.tipo === 'transferencia' ? 7 : 6} className="py-4 text-center text-slate-500">Sin registros de auditoría</td>
                       </tr>
                     )}
                     {auditoriaItems
@@ -604,7 +624,17 @@ export const BackofficePage: React.FC = () => {
                         <td className="py-2 px-3">{item.accion}</td>
                         <td className="py-2 px-3">{item.estadoAnterior ?? '--'}</td>
                         <td className="py-2 px-3">{item.estadoNuevo ?? '--'}</td>
-                        <td className="py-2 px-3">{item.motivo ?? item.userAgent ?? '--'}</td>
+                        {auditoriaEntidad?.tipo === 'transferencia' ? (
+                          <>
+                            <td className="py-2 px-3">{item.resultado ?? '--'}</td>
+                            <td className="py-2 px-3">{item.detalle ?? item.errorDetalle ?? '--'}</td>
+                            <td className="py-2 px-3">{item.traceId ?? '--'}</td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="py-2 px-3">{item.motivo ?? item.valoresAnteriores ?? '--'}</td>
+                          </>
+                        )}
                         <td className="py-2 px-3">{item.ipOrigen ?? '--'}</td>
                       </tr>
                     ))}

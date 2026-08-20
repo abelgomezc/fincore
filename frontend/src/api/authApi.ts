@@ -3,8 +3,8 @@ import { AuthResponse, LoginRequest, RegisterRequest, UsuarioBackoffice } from '
 
 export interface AuditoriaItem {
   id: number;
-  entidad: string;
-  idEntidad: string;
+  entidad?: string;
+  idEntidad?: string;
   accion: string;
   estadoAnterior?: string;
   estadoNuevo?: string;
@@ -14,6 +14,15 @@ export interface AuditoriaItem {
   dispositivo?: string;
   fechaCambio?: string;
   creadoPor?: string;
+  resultado?: string;
+  detalle?: string;
+  errorDetalle?: string;
+  idUsuario?: string;
+  traceId?: string;
+  comentario?: string;
+  valoresAnteriores?: string;
+  valoresNuevos?: string;
+  _tipo?: 'estado' | 'password' | 'transferencia';
 }
 
 export const authApi = {
@@ -88,5 +97,10 @@ export const clienteApi = {
 
   eliminarCliente: async (id: number): Promise<void> => {
     await apiClient.delete(`/api/clientes/${id}`);
+  },
+
+  consultarAuditoria: async (id: number): Promise<AuditoriaItem[]> => {
+    const response = await apiClient.get<AuditoriaItem[]>(`/api/clientes/${id}/auditoria`);
+    return response.data;
   },
 };

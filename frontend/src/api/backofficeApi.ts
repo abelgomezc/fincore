@@ -49,4 +49,27 @@ export const backofficeApi = {
   cambiarEstadoUsuarioSistema: async (id: number, estado: string): Promise<void> => {
     await apiClient.put(`/api/backoffice/usuarios/${id}/estado`, null, { params: { estado } });
   },
+
+  consultarAuditoriaUsuario: async (id: number): Promise<AuditoriaCambioBackoffice[]> => {
+    const response = await apiClient.get<AuditoriaCambioBackoffice[]>(`/api/backoffice/auditoria/usuario/${id}`);
+    return response.data;
+  },
 };
+
+export interface AuditoriaCambioBackoffice {
+  id: number;
+  idUsuarioSistema: number;
+  entidad: string;
+  idEntidad: string;
+  accion: string;
+  valoresAnteriores?: string;
+  valoresNuevos?: string;
+  comentario?: string;
+  ipOrigen?: string;
+  userAgent?: string;
+  dispositivo?: string;
+  fechaCambio?: string;
+  creadoPor?: string;
+  actualizadoPor?: string;
+  version: number;
+}
