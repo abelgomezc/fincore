@@ -17,6 +17,9 @@ import {
   IconLogout,
   IconChevronDown,
   IconWallet,
+  IconFileDescription,
+  IconFingerprint,
+  IconCash,
 } from '@tabler/icons-react';
 
 interface NavItem {
@@ -29,6 +32,9 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/', icon: IconLayoutDashboard },
   { name: 'Cuentas', href: '/accounts', icon: IconCreditCard },
   { name: 'Transferencias', href: '/transfers', icon: IconTransfer },
+  { name: 'Préstamos', href: '/loans', icon: IconCash },
+  { name: 'Documentos', href: '/documents', icon: IconFileDescription },
+  { name: 'KYC / Biometría', href: '/kyc', icon: IconFingerprint },
   { name: 'Extracto', href: '/accounts', icon: IconFileText },
   { name: 'Auditoría', href: '/audit', icon: IconShieldCheck },
 ];
@@ -71,8 +77,12 @@ export const Sidebar: React.FC = () => {
   };
 
   const isAdmin = user?.roles?.some((r) => r === 'ADMIN' || r === 'SUPER_ADMIN' || r === 'AFRICANO') ?? false;
+  const isSupervisor = user?.roles?.includes('SUPERVISOR') ?? false;
+  const isOperador = user?.roles?.includes('OPERADOR') ?? false;
+  const isCliente = user?.roles?.includes('CLIENTE') ?? false;
 
-  const allNav = isAdmin ? [...navigation, ...adminNavigation] : navigation;
+  const allNav = isAdmin || isSupervisor || isOperador || isCliente ? navigation : [];
+  const adminNav = isAdmin ? adminNavigation : [];
 
   return (
     <aside className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex flex-col overflow-y-auto shadow-lg z-20">
@@ -172,6 +182,8 @@ export const Sidebar: React.FC = () => {
 
       <nav className="flex-1 px-3 py-4 space-y-1">
         {allNav.map((item, index) => {
+          if (item.name === 'KYC / Biometría' && !isAdmin && !isOperador) return null;
+          if (item.name === 'Préstamos' && isAdmin) return null;
           const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
           const Icon = item.icon;
           return (
@@ -180,6 +192,32 @@ export const Sidebar: React.FC = () => {
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.2, delay: 0.1 + index * 0.03 }}
+            >
+              <Link
+                to={item.href}
+                className={clsx(
+                  'flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
+                  'hover:pl-4',
+                  isActive
+                    ? 'bg-blue-900 text-white rounded-xl border-l-4 border-blue-300'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800'
+                )}
+              >
+                <Icon className={clsx('w-5 h-5 flex-shrink-0 transition-transform', isActive ? 'w-6 h-6' : '')} />
+                <span>{item.name}</span>
+              </Link>
+            </motion.div>
+          );
+        })}
+        {adminNav.map((item, index) => {
+          const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
+          const Icon = item.icon;
+          return (
+            <motion.div
+              key={item.name}
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.2, delay: 0.1 + (allNav.length + index) * 0.03 }}
             >
               <Link
                 to={item.href}

@@ -123,6 +123,38 @@ public class ClienteEventProducer {
         log.info("Evento cliente.kyc.en_revision publicado: ID={}", idCliente);
     }
 
+    public void publicarValidacionIdentidadCompletada(Long idCliente, String estado) {
+        ValidacionIdentidadCompletadaEvent event = ValidacionIdentidadCompletadaEvent.builder()
+                .idCliente(idCliente)
+                .estado(estado)
+                .timestamp(Instant.now().toEpochMilli())
+                .build();
+
+        kafkaTemplate.send("cliente.validacion.identidad", idCliente.toString(), event);
+        log.info("Evento cliente.validacion.identidad publicado: ID={}", idCliente);
+    }
+
+    public void publicarBiometriaIniciada(Long idCliente) {
+        BiometriaIniciadaEvent event = BiometriaIniciadaEvent.builder()
+                .idCliente(idCliente)
+                .timestamp(Instant.now().toEpochMilli())
+                .build();
+
+        kafkaTemplate.send("cliente.biometria.iniciada", idCliente.toString(), event);
+        log.info("Evento cliente.biometria.iniciada publicado: ID={}", idCliente);
+    }
+
+    public void publicarBiometriaFinalizada(Long idCliente, String estado) {
+        BiometriaFinalizadaEvent event = BiometriaFinalizadaEvent.builder()
+                .idCliente(idCliente)
+                .estado(estado)
+                .timestamp(Instant.now().toEpochMilli())
+                .build();
+
+        kafkaTemplate.send("cliente.biometria.finalizada", idCliente.toString(), event);
+        log.info("Evento cliente.biometria.finalizada publicado: ID={}", idCliente);
+    }
+
     @lombok.Getter
     @lombok.Setter
     @lombok.Builder
@@ -177,6 +209,26 @@ public class ClienteEventProducer {
     @lombok.Getter @lombok.Setter @lombok.Builder @lombok.NoArgsConstructor @lombok.AllArgsConstructor
     public static class ClienteKycEnReviewEvent {
         private Long idCliente;
+        private Long timestamp;
+    }
+
+    @lombok.Getter @lombok.Setter @lombok.Builder @lombok.NoArgsConstructor @lombok.AllArgsConstructor
+    public static class ValidacionIdentidadCompletadaEvent {
+        private Long idCliente;
+        private String estado;
+        private Long timestamp;
+    }
+
+    @lombok.Getter @lombok.Setter @lombok.Builder @lombok.NoArgsConstructor @lombok.AllArgsConstructor
+    public static class BiometriaIniciadaEvent {
+        private Long idCliente;
+        private Long timestamp;
+    }
+
+    @lombok.Getter @lombok.Setter @lombok.Builder @lombok.NoArgsConstructor @lombok.AllArgsConstructor
+    public static class BiometriaFinalizadaEvent {
+        private Long idCliente;
+        private String estado;
         private Long timestamp;
     }
 }

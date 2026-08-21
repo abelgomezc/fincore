@@ -6,19 +6,21 @@ Sistema bancario moderno desarrollado con microservicios, diseñado para demostr
 
 ```
 fincore/
-├── eureka-server/           # Servidor de descubrimiento (Netflix Eureka)
-├── api-gateway/             # Gateway principal (Spring Cloud Gateway)
-├── auth-service/            # Autenticación y autorización (JWT)
-├── customer-service/        # Gestión de clientes
-├── account-service/         # Gestión de cuentas y saldos
-├── ledger-service/          # Contabilidad (doble partida)
-├── transfer-service/        # Transferencias con Saga Pattern (12 pasos)
-├── fraud-service/           # Motor de reglas antifraude (10 reglas)
-├── notification-service/    # Notificaciones (Email, Push, WebSocket)
-├── audit-service/           # Trazabilidad y auditoría
-├── backoffice-service/      # Panel administrativo
-├── batch-service/           # Jobs programados
-└── frontend/                # Aplicación web (React + Vite + Tailwind)
+├── eureka-server/              # Servidor de descubrimiento (Netflix Eureka)
+├── api-gateway/                # Gateway principal (Spring Cloud Gateway)
+├── auth-service/               # Autenticación y autorización (JWT)
+├── customer-service/           # Gestión de clientes, KYC, biometría
+├── account-service/            # Gestión de cuentas y saldos
+├── ledger-service/             # Contabilidad (doble partida)
+├── transfer-service/           # Transferencias con Saga Pattern (12 pasos)
+├── fraud-service/              # Motor de reglas antifraude (10 reglas)
+├── notification-service/       # Notificaciones (Email, Push, WebSocket)
+├── audit-service/              # Trazabilidad y auditoría
+├── backoffice-service/         # Panel administrativo
+├── batch-service/              # Jobs programados
+├── document-service/           # Generación de documentos y firma electrónica
+├── loan-orchestration/         # Orquestación de préstamos en línea
+└── frontend/                   # Aplicación web (React + Vite + Tailwind)
 ```
 
 ### Diagrama de conexiones
@@ -44,6 +46,8 @@ graph LR
         AUDIT[audit-service :8091]
         BACK[backoffice-service :8093]
         BATCH[batch-service :8094]
+        DOC[document-service :8095]
+        LOAN[loan-orchestration :8096]
     end
 
     subgraph Infraestructura
@@ -64,6 +68,8 @@ graph LR
     G --> AUDIT
     G --> BACK
     G --> BATCH
+    G --> DOC
+    G --> LOAN
 
     AUTH --> EUREKA
     CUST --> EUREKA
@@ -75,7 +81,8 @@ graph LR
     AUDIT --> EUREKA
     BACK --> EUREKA
     BATCH --> EUREKA
-    G --> EUREKA
+    DOC --> EUREKA
+    LOAN --> EUREKA
 
     TX --> KAFKA
     ACC --> KAFKA
@@ -83,6 +90,8 @@ graph LR
     FRAUD --> KAFKA
     NOTIF --> KAFKA
     AUDIT --> KAFKA
+    DOC --> KAFKA
+    LOAN --> KAFKA
 
     G --> REDIS
     AUTH --> REDIS
@@ -90,6 +99,9 @@ graph LR
     FRAUD --> REDIS
 
     ACC --> CUST
+    LOAN --> CUST
+    LOAN --> DOC
+    LOAN --> NOTIF
 
     AUTH --> PG
     CUST --> PG
@@ -100,6 +112,8 @@ graph LR
     AUDIT --> PG
     BACK --> PG
     BATCH --> PG
+    DOC --> PG
+    LOAN --> PG
 ```
 
 ## 🗄️ Esquema de Base de Datos
@@ -1168,6 +1182,30 @@ El sistema registra auditoría especializada por entidad y por flujo. En el back
 - **Cuentas**: apertura, bloqueo.
 - **Clientes**: bloqueo, desbloqueo, suspensión, reactivación, eliminación.
 - **Backoffice**: cambios en usuarios backoffice.
+- **Préstamos**: solicitud, validación de identidad, buró de crédito, evaluación de riesgo, generación de contrato, firma electrónica, desembolso.
+
+## 💰 Préstamos en línea
+
+### Flujo de originación
+
+1. **Solicitud** → `loan-orchestration-service`
+2. **Validación de identidad / biometría** → `customer-service`
+3. **Consulta de buró de crédito** → adaptador dentro de `loan-orchestration-service`
+4. **Evaluación de riesgo** → `loan-orchestration-service`
+5. **Generación de contrato** → `document-service`
+6. **Firma electrónica** → `document-service`
+7. **Notificación** → `notification-service`
+8. **Desembolso / contabilización** → `ledger-service`
+
+### Roles involucrados
+
+| Rol | Responsabilidad |
+|-----|-----------------|
+| `CLIENTE` | Solicita préstamo, firma contrato |
+| `OPERADOR` | Carga datos, valida identidad |
+| `SUPERVISOR` | Aprueba/rechaza préstamos |
+| `ADMIN` | Configura reglas, plantillas, proveedores |
+| `AUDITOR` | Consulta historial y trazabilidad |
 
 ## 📦 Build
 

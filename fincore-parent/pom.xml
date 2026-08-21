@@ -50,6 +50,8 @@
         <module>../audit-service</module>
         <module>../backoffice-service</module>
         <module>../batch-service</module>
+        <module>../document-service</module>
+        <module>../loan-orchestration</module>
     </modules>
 
     <dependencyManagement>

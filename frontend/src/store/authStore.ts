@@ -23,6 +23,8 @@ interface AuthActions {
   clearError: () => void;
   checkAuth: () => boolean;
   toggleDarkMode: () => void;
+  hasRole: (role: string) => boolean;
+  hasAnyRole: (roles: string[]) => boolean;
 }
 
 export const useAuthStore = create<AuthState & AuthActions>()(
@@ -96,6 +98,15 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           const response: AuthResponse = await authApi.refresh(storedRefresh);
           const tokenPayload = jwtDecode<JwtPayload>(response.accessToken);
 
+          const usuario: Usuario = {
+            id: String(response.userId),
+            username: response.email,
+            nombreCompleto: response.nombreCompleto,
+            email: response.email,
+            roles: [response.rol],
+            esActivo: response.estado === 'ACTIVO',
+          };
+
           setToken(response.accessToken);
           setRefreshToken(response.refreshToken);
 
@@ -104,7 +115,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             refreshTokenValue: response.refreshToken,
             tokenExpiresAt: tokenPayload.exp * 1000,
             isLoading: false,
-            user: response.usuario,
+            user: usuario,
           });
         } catch {
           get().logout();
@@ -128,6 +139,14 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         } else {
           document.documentElement.classList.remove('dark');
         }
+      },
+
+      hasRole: (role: string) => {
+        return get().user?.roles?.includes(role) ?? false;
+      },
+
+      hasAnyRole: (roles: string[]) => {
+        return roles.some((r) => get().user?.roles?.includes(r) ?? false);
       },
     }),
     {

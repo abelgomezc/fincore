@@ -7,7 +7,7 @@ Documentación generada a partir de las migraciones Flyway y de la inspección d
 | BD | Microservicio | Rol principal |
 |---|---|---|
 | `fincore_auth` | auth-service | Identidad, login, refresh tokens, sesiones, roles |
-| `fincore_customers` | customer-service | Clientes, documentos, direcciones, KYC |
+| `fincore_customers` | customer-service | Clientes, documentos, direcciones, KYC, biometría |
 | `fincore_accounts` | account-service | Tipos de cuenta, cuentas, saldos, límites, beneficiarios |
 | `fincore_transfers` | transfer-service | Transferencias, saga, estados, compensaciones |
 | `fincore_ledger` | ledger-service | Plan de cuentas, asientos contables, líneas |
@@ -16,6 +16,8 @@ Documentación generada a partir de las migraciones Flyway y de la inspección d
 | `fincore_backoffice` | backoffice-service | Usuarios backoffice, auditoría interna, config fraude |
 | `fincore_batch` | batch-service | Jobs batch y conciliaciones |
 | `fincore_notifications` | notification-service | Notificaciones (email, push, WebSocket) |
+| `fincore_documents` | document-service | Plantillas, contratos, firmas electrónicas |
+| `fincore_loans` | loan-orchestration | Solicitudes préstamo, evaluaciones riesgo, historial |
 
 ## Tablas y cantidades reales
 
@@ -99,6 +101,20 @@ Documentación generada a partir de las migraciones Flyway y de la inspección d
 | Tabla | Registros |
 |------|-----------|
 | `notificaciones` | 0 |
+
+### document-service (`fincore_documents`)
+| Tabla | Registros |
+|------|-----------|
+| `documentos_plantillas` | 0 |
+| `documentos_generados` | 0 |
+| `firmas_electronicas` | 0 |
+
+### loan-orchestration (`fincore_loans`)
+| Tabla | Registros |
+|------|-----------|
+| `solicitudes_prestamo` | 0 |
+| `evaluaciones_riesgo` | 0 |
+| `historial_solicitudes_prestamo` | 0 |
 
 ## Diagrama relacional completo
 
@@ -745,7 +761,16 @@ erDiagram
     asientos_contables ||--o{ lineas_asiento : "tiene"
     plan_cuentas ||--o{ lineas_asiento : "tiene"
     usuarios_sistema ||--o{ auditoria_cambios_backoffice : "tiene"
-```
+
+    clientes ||--o{ validaciones_identidad : "tiene"
+    clientes ||--o{ sesiones_biometricas : "tiene"
+
+    documentos_plantillas ||--o{ documentos_generados : "genera"
+    documentos_generados ||--o{ firmas_electronicas : "tiene"
+
+    solicitudes_prestamo ||--o{ evaluaciones_riesgo : "tiene"
+    solicitudes_prestamo ||--o{ historial_solicitudes_prestamo : "tiene"
+    ```
 
 ## Relaciones cruzadas entre microservicios
 
@@ -762,6 +787,10 @@ erDiagram
 | `auth-service.usuarios.id` | `backoffice-service.usuarios_sistema.id` | Lógica | Usuarios backoffice separados de usuarios de app |
 | `customer-service.clientes.id` | `fraud-service.perfil_transaccional.id_cliente` | Lógica | Perfil transaccional por cliente |
 | `transfer-service.transferencias.id` | `notification-service.notificaciones.id_transferencia` | Lógica | Notificaciones por transferencia |
+| `customer-service.clientes.id` | `document-service.documentos_generados.id_entidad` | Lógica | Documentos asociados a cliente |
+| `loan-orchestration.solicitudes_prestamo.id_cliente` | `customer-service.clientes.id` | Lógica | Préstamo asociado a cliente |
+| `loan-orchestration.solicitudes_prestamo.id_documento_contrato` | `document-service.documentos_generados.id` | Lógica | Contrato de préstamo |
+| `loan-orchestration.solicitudes_prestamo.id` | `ledger-service.asientos_contables.id_referencia` | Lógica | Asiento por desembolso de préstamo |
 
 ## Observaciones importantes
 
@@ -773,3 +802,7 @@ erDiagram
 - El diagrama es orientado a tablas y relaciones DDL reales; no incluye aún las tablas del gateway porque usa `localhost:8080` y no corría al momento de la inspección.
 - Algunas relaciones son lógicas por `id` o `trace_id` porque cada microservicio tiene su propia BD; no hay FK físicas entre servicios.
 - La auditoría puede consultarse desde el frontend en el backoffice mediante el modal de auditoría con pestañas para estados y contraseñas.
+- Se agregaron tablas de validación de identidad y biometría en `customer-service`: `validaciones_identidad` y `sesiones_biometricas`.
+- Se agregó el `document-service` con tablas: `documentos_plantillas`, `documentos_generados` y `firmas_electronicas`.
+- Se agregó el `loan-orchestration` con tablas: `solicitudes_prestamo`, `evaluaciones_riesgo` y `historial_solicitudes_prestamo`.
+- El flujo de préstamo en línea orquesta: validación de identidad → buró de crédito → evaluación de riesgo → generación de contrato → firma electrónica → desembolso.

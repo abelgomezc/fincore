@@ -8,6 +8,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: React.ReactNode;
+  loading?: boolean;
 }
 
 const baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
@@ -33,14 +34,18 @@ export const Button: React.FC<ButtonProps> = ({
   icon,
   children,
   className,
+  loading,
+  disabled,
   ...props
 }) => {
   return (
     <button
       className={clsx(baseClasses, variantClasses[variant], sizeClasses[size], className)}
+      disabled={disabled || loading}
       {...props}
     >
-      {icon && <span className="mr-2 flex-shrink-0">{icon}</span>}
+      {icon && !loading && <span className="mr-2 flex-shrink-0">{icon}</span>}
+      {loading && <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
       {children}
     </button>
   );

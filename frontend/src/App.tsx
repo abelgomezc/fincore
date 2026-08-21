@@ -11,6 +11,9 @@ import { TransferPage } from '@/pages/TransferPage';
 import { AccountDetailPage } from '@/pages/AccountDetailPage';
 import { AuditPage } from '@/pages/AuditPage';
 import { BackofficePage } from '@/pages/BackofficePage';
+import { LoansPage } from '@/pages/LoansPage';
+import { DocumentsPage } from '@/pages/DocumentsPage';
+import { KycPage } from '@/pages/KycPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +68,9 @@ const AnimatedRoutes: React.FC = () => {
           <Route path="/transfers" element={<TransferPage />} />
           <Route path="/accounts" element={<DashboardPage />} />
           <Route path="/accounts/:id" element={<AccountDetailPage />} />
+          <Route path="/loans" element={<LoansPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/kyc" element={<KycPage />} />
           <Route path="/extracto" element={<DashboardPage />} />
           <Route path="/audit" element={<AuditPage />} />
         </Route>
