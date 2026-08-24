@@ -1,59 +1,54 @@
--- ============================================
--- Document Service - Esquema inicial
--- © 2026 Abel Gomez. Todos los derechos reservados.
--- ============================================
-
 CREATE TABLE IF NOT EXISTS documentos_plantillas (
-    bigserial PRIMARY KEY,
-    varchar(50) tipo_documento NOT NULL,
-    varchar(150) nombre NOT NULL,
-    text descripcion,
-    text contenido_html NOT NULL,
-    integer version NOT NULL DEFAULT 1,
-    boolean activo NOT NULL DEFAULT TRUE,
-    timestamp fecha_creacion NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    timestamp fecha_actualizacion NOT NULL DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY,
+    tipo_documento VARCHAR(50) NOT NULL,
+    nombre VARCHAR(150) NOT NULL,
+    descripcion TEXT,
+    contenido_html TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS documentos_generados (
-    bigserial PRIMARY KEY,
-    varchar(50) entidad NOT NULL,
-    varchar(100) id_entidad NOT NULL,
-    varchar(50) tipo_documento NOT NULL,
-    varchar(20) estado NOT NULL,
-    varchar(255) nombre_archivo,
-    text url_archivo,
-    text contenido_html,
-    varchar(255) hash_archivo,
-    bigint id_plantilla,
-    timestamp fecha_generacion,
-    timestamp fecha_firma,
-    timestamp fecha_vencimiento,
-    varchar(100) creado_por,
-    varchar(100) actualizado_por,
-    bigint version NOT NULL DEFAULT 0,
-    timestamp fecha_creacion DEFAULT CURRENT_TIMESTAMP,
-    timestamp fecha_actualizacion DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY,
+    entidad VARCHAR(50) NOT NULL,
+    id_entidad VARCHAR(100) NOT NULL,
+    tipo_documento VARCHAR(50) NOT NULL,
+    estado VARCHAR(20) NOT NULL,
+    nombre_archivo VARCHAR(255),
+    url_archivo TEXT,
+    contenido_html TEXT,
+    hash_archivo VARCHAR(255),
+    id_plantilla BIGINT,
+    fecha_generacion TIMESTAMP,
+    fecha_firma TIMESTAMP,
+    fecha_vencimiento TIMESTAMP,
+    creado_por VARCHAR(100),
+    actualizado_por VARCHAR(100),
+    version BIGINT NOT NULL DEFAULT 0,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS firmas_electronicas (
-    bigserial PRIMARY KEY,
-    bigint id_documento NOT NULL,
-    varchar(100) id_firmante NOT NULL,
-    varchar(200) nombre_firmante NOT NULL,
-    varchar(200) email_firmante,
-    varchar(20) estado NOT NULL,
-    varchar(100) proveedor,
-    varchar(150) id_transaccion_proveedor,
-    timestamp fecha_envio,
-    timestamp fecha_firma,
-    varchar(45) ip_firmante,
-    varchar(255) huella_digital,
-    varchar(100) certificado_serial,
-    text motivo_rechazo,
-    varchar(100) creado_por,
-    varchar(100) actualizado_por,
-    bigint version NOT NULL DEFAULT 0
+    id SERIAL PRIMARY KEY,
+    id_documento BIGINT NOT NULL,
+    id_firmante VARCHAR(100) NOT NULL,
+    nombre_firmante VARCHAR(200) NOT NULL,
+    email_firmante VARCHAR(200),
+    estado VARCHAR(20) NOT NULL,
+    proveedor VARCHAR(100),
+    id_transaccion_proveedor VARCHAR(150),
+    fecha_envio TIMESTAMP,
+    fecha_firma TIMESTAMP,
+    ip_firmante VARCHAR(45),
+    huella_digital VARCHAR(255),
+    certificado_serial VARCHAR(100),
+    motivo_rechazo TEXT,
+    creado_por VARCHAR(100),
+    actualizado_por VARCHAR(100),
+    version BIGINT NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_documentos_plantillas_tipo ON documentos_plantillas(tipo_documento);

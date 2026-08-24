@@ -3,7 +3,7 @@
 -- ============================================
 
 CREATE TABLE IF NOT EXISTS validaciones_identidad (
-    bigserial PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     bigint id_cliente NOT NULL,
     varchar(50) tipo_validacion NOT NULL,
     varchar(20) estado NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS validaciones_identidad (
 );
 
 CREATE TABLE IF NOT EXISTS sesiones_biometricas (
-    bigserial PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     bigint id_cliente NOT NULL,
     varchar(50) tipo_biometria NOT NULL,
     varchar(20) estado NOT NULL,

@@ -81,6 +81,48 @@ services:
     networks:
       - fincore-network
 
+  document-service:
+    image: eclipse-temurin:21-jdk-alpine
+    container_name: fincore-document-service
+    working_dir: /app
+    volumes:
+      - ./document-service/target:/app
+    command: ["java", "-jar", "document-service-1.0.0.jar"]
+    ports:
+      - "8095:8095"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/fincore_documents
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=host.docker.internal:9092
+      - SERVER_PORT=8095
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - fincore-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  loan-orchestration:
+    image: eclipse-temurin:21-jdk-alpine
+    container_name: fincore-loan-orchestration
+    working_dir: /app
+    volumes:
+      - ./loan-orchestration/target:/app
+    command: ["java", "-jar", "loan-orchestration-1.0.0.jar"]
+    ports:
+      - "8096:8096"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/fincore_loans
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=host.docker.internal:9092
+      - SERVER_PORT=8096
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - fincore-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+
 volumes:
   fincore-redis-data:
     name: fincore-redis-data

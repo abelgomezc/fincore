@@ -207,7 +207,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({ cuentas, onSubmitSuc
                       {cuentaDestinoPreview.tipoCuenta} · {cuentaDestinoPreview.moneda}
                     </p>
                   </div>
-                  <Badge variant={cuentaDestinoPreview.estado === 'ACTIVA' ? 'success' : 'error'} size="sm">
+                  <Badge variant={cuentaDestinoPreview.estado === 'ACTIVA' ? 'success' : 'danger'} size="sm">
                     {cuentaDestinoPreview.estado}
                   </Badge>
                 </div>
