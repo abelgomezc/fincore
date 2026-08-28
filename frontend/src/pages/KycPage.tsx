@@ -4,6 +4,8 @@ import { Card, Badge, Button } from '@/components/ui';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { customerApi } from '@/api/customerApi';
+import type { ValidacionIdentidadResponse, SesionBiometricaResponse } from '@/api/customerApi';
 import {
   IconFingerprint,
   IconCheck,
@@ -14,11 +16,12 @@ import {
 export const KycPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
-  const [validaciones, setValidaciones] = useState<any[]>([]);
-  const [biometrias, setBiometrias] = useState<any[]>([]);
+  const [validaciones, setValidaciones] = useState<ValidacionIdentidadResponse[]>([]);
+  const [biometrias, setBiometrias] = useState<SesionBiometricaResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [showValidacionForm, setShowValidacionForm] = useState(false);
   const [showBiometriaForm, setShowBiometriaForm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [validacionForm, setValidacionForm] = useState({ idCliente: 1, tipoValidacion: 'DOCUMENTO', proveedor: 'mock-provider', detalle: '' });
   const [biometriaForm, setBiometriaForm] = useState({ idCliente: 1, tipoBiometria: 'FACIAL', proveedor: 'mock-provider', idSesionProveedor: '' });
@@ -30,11 +33,17 @@ export const KycPage: React.FC = () => {
 
   const cargarDatos = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // TODO: reemplazar por llamadas reales a customer-service cuando existan los mappers en el frontend
-      // Por ahora se mantiene vacío para no usar `any` sin origen.
+      const [v, b] = await Promise.all([
+        customerApi.consultarValidaciones(validacionForm.idCliente),
+        customerApi.consultarBiometrias(biometriaForm.idCliente),
+      ]);
+      setValidaciones(v);
+      setBiometrias(b);
     } catch (e) {
       console.error(e);
+      setError('No se pudo cargar la información de KYC/Biometría.');
     } finally {
       setLoading(false);
     }
@@ -43,12 +52,14 @@ export const KycPage: React.FC = () => {
   const handleValidarIdentidad = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
-      // await api.validarIdentidad(validacionForm);
+      await customerApi.validarIdentidad(validacionForm);
       setShowValidacionForm(false);
       cargarDatos();
     } catch (e) {
       console.error(e);
+      setError('No se pudo registrar la validación de identidad.');
     } finally {
       setLoading(false);
     }
@@ -57,12 +68,14 @@ export const KycPage: React.FC = () => {
   const handleIniciarBiometria = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
-      // await api.iniciarBiometria(biometriaForm);
+      await customerApi.iniciarBiometria(biometriaForm);
       setShowBiometriaForm(false);
       cargarDatos();
     } catch (e) {
       console.error(e);
+      setError('No se pudo iniciar la sesión biométrica.');
     } finally {
       setLoading(false);
     }
@@ -70,11 +83,13 @@ export const KycPage: React.FC = () => {
 
   const handleFinalizarBiometria = async (id: number) => {
     setLoading(true);
+    setError(null);
     try {
-      // await api.finalizarBiometria(id, 'APROBADO', 95, 'Biometría aprobada');
+      await customerApi.finalizarBiometria(id, 'APROBADO', 95, 'Biometría aprobada');
       cargarDatos();
     } catch (e) {
       console.error(e);
+      setError('No se pudo finalizar la biometría.');
     } finally {
       setLoading(false);
     }
@@ -95,6 +110,12 @@ export const KycPage: React.FC = () => {
               <Button onClick={() => { setShowBiometriaForm(!showBiometriaForm); setShowValidacionForm(false); }}>Iniciar Biometría</Button>
             </div>
           </div>
+
+          {error && (
+            <Card className="mb-6 border-red-200 bg-red-50 dark:bg-red-900/20">
+              <p className="text-sm text-red-600">{error}</p>
+            </Card>
+          )}
 
           {showValidacionForm && (
             <Card className="mb-6">

@@ -21,6 +21,7 @@ export const LoansPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [selectedSolicitud, setSelectedSolicitud] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     idCliente: 1,
@@ -37,11 +38,13 @@ export const LoansPage: React.FC = () => {
 
   const cargarSolicitudes = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await loanApi.listarSolicitudes();
       setSolicitudes(data);
     } catch (e) {
       console.error(e);
+      setError('No se pudieron cargar las solicitudes.');
     } finally {
       setLoading(false);
     }
@@ -50,12 +53,14 @@ export const LoansPage: React.FC = () => {
   const handleCrearSolicitud = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
       await loanApi.crearSolicitud(form);
       setShowForm(false);
       cargarSolicitudes();
     } catch (e) {
       console.error(e);
+      setError('No se pudo crear la solicitud.');
     } finally {
       setLoading(false);
     }
@@ -63,6 +68,7 @@ export const LoansPage: React.FC = () => {
 
   const handleAccion = async (id: number, accion: string) => {
     setLoading(true);
+    setError(null);
     try {
       switch (accion) {
         case 'validar':
@@ -95,6 +101,7 @@ export const LoansPage: React.FC = () => {
       cargarSolicitudes();
     } catch (e) {
       console.error(e);
+      setError('No se pudo completar la acción.');
     } finally {
       setLoading(false);
     }
@@ -129,6 +136,12 @@ export const LoansPage: React.FC = () => {
               Nueva Solicitud
             </Button>
           </div>
+
+          {error && (
+            <Card className="mb-6 border-red-200 bg-red-50 dark:bg-red-900/20">
+              <p className="text-sm text-red-600">{error}</p>
+            </Card>
+          )}
 
           {showForm && (
             <Card className="mb-6">

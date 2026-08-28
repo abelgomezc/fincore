@@ -22,6 +22,7 @@ export const DocumentsPage: React.FC = () => {
   const [showPlantillaForm, setShowPlantillaForm] = useState(false);
   const [showDocumentoForm, setShowDocumentoForm] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const [plantillaForm, setPlantillaForm] = useState({ tipoDocumento: 'CONTRATO_PRESTAMO', nombre: '', descripcion: '', contenidoHtml: '<p>Contrato</p>' });
   const [documentoForm, setDocumentoForm] = useState({ idPlantilla: 1, tipoDocumento: 'CONTRATO_PRESTAMO', entidad: 'prestamo', idEntidad: '1', nombreArchivo: 'contrato.pdf' });
@@ -33,6 +34,7 @@ export const DocumentsPage: React.FC = () => {
 
   const cargarDatos = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [plantillasData, docsData] = await Promise.all([
         documentApi.listarPlantillas(),
@@ -42,6 +44,7 @@ export const DocumentsPage: React.FC = () => {
       setDocumentos(docsData);
     } catch (e) {
       console.error(e);
+      setError('No se pudieron cargar los documentos.');
     } finally {
       setLoading(false);
     }
@@ -50,12 +53,14 @@ export const DocumentsPage: React.FC = () => {
   const handleCrearPlantilla = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
       await documentApi.crearPlantilla(plantillaForm);
       setShowPlantillaForm(false);
       cargarDatos();
     } catch (e) {
       console.error(e);
+      setError('No se pudo crear la plantilla.');
     } finally {
       setLoading(false);
     }
@@ -64,12 +69,14 @@ export const DocumentsPage: React.FC = () => {
   const handleGenerarDocumento = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
       await documentApi.generarDocumento(documentoForm);
       setShowDocumentoForm(false);
       cargarDatos();
     } catch (e) {
       console.error(e);
+      setError('No se pudo generar el documento.');
     } finally {
       setLoading(false);
     }
@@ -77,11 +84,13 @@ export const DocumentsPage: React.FC = () => {
 
   const handleEnviarAFirmar = async (id: number) => {
     setLoading(true);
+    setError(null);
     try {
       await documentApi.enviarAFirmar({ idDocumento: id, idFirmante: 'cliente1', nombreFirmante: 'Cliente Demo' });
       cargarDatos();
     } catch (e) {
       console.error(e);
+      setError('No se pudo enviar a firmar.');
     } finally {
       setLoading(false);
     }
@@ -115,6 +124,12 @@ export const DocumentsPage: React.FC = () => {
               <Button icon={<IconPlus className="w-4 h-4" />} onClick={() => { setShowDocumentoForm(!showDocumentoForm); setShowPlantillaForm(false); }}>Generar Documento</Button>
             </div>
           </div>
+
+          {error && (
+            <Card className="mb-6 border-red-200 bg-red-50 dark:bg-red-900/20">
+              <p className="text-sm text-red-600">{error}</p>
+            </Card>
+          )}
 
           {showPlantillaForm && (
             <Card className="mb-6">
